@@ -6,8 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
-- Self-update crash when the running executable could not be replaced
-- Self-update failing silently instead of showing the error
+- Edge cases where self-updater would fail and crash. It now properly restores the old version. (Author: @Kkthnx)
 
 ## [1.25.0] - 2026-06-18
 ### Added
