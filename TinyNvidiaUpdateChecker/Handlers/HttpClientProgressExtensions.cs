@@ -12,6 +12,9 @@ namespace HttpClientProgress
         {
             using (var response = await client.GetAsync(requestUrl, HttpCompletionOption.ResponseHeadersRead))
             {
+                // Validate success status
+                response.EnsureSuccessStatusCode();
+
                 var contentLength = response.Content.Headers.ContentLength;
                 using (var download = await response.Content.ReadAsStreamAsync())
                 {

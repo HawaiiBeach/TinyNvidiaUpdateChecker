@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Edge case crash where driver download would ignore server errors. (Author: @Kkthnx)
+- Edge case crash if minimall install doesn't properly extract drivers, would cause crash. (Author: @Kkthnx)
+
 ## [1.25.0] - 2026-06-18
 ### Added
 - Disable installer telemetry and installer ads
