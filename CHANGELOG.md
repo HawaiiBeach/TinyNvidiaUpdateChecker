@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Self-update crash when the running executable could not be replaced
+- Self-update failing silently instead of showing the error
+
 ## [1.25.0] - 2026-06-18
 ### Added
 - Disable installer telemetry and installer ads
