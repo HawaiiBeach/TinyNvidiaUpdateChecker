@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Edge cases where self-updater would fail and crash. It now properly restores the old version. (Author: @Kkthnx)
+
 ## [1.25.0] - 2026-06-18
 ### Added
 - Disable installer telemetry and installer ads
