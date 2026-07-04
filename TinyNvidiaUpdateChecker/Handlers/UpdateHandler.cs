@@ -61,10 +61,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
         private static void UpdateNow(string[] args, string downloadUrl, string serverHash)
         {
             string currentExe = Path.GetFullPath(Environment.ProcessPath);
+            string backupExe = currentExe + ".old";
+            string tempFile = Path.Combine(Path.GetTempPath(), "TinyNvidiaUpdateChecker.tmp");
+            bool movedToBackup = false;
 
             try {
-                string tempFile = Path.Combine(Path.GetTempPath(), "TinyNvidiaUpdateChecker.tmp");
-                File.Move(currentExe, currentExe + ".old", true);
+                File.Move(currentExe, backupExe, true);
+                movedToBackup = true;
 
                 Console.WriteLine();
                 Console.Write("Downloading update . . . ");
@@ -87,18 +90,31 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     string runArgs = string.Join(" ", args) + " --cleanup-update";
                     Process.Start(new ProcessStartInfo(currentExe) { UseShellExecute = true, Arguments = runArgs });
                     Environment.Exit(0);
-                } else {
-                    Console.WriteLine("ERROR!");
-                    Console.WriteLine("Checksum mismatch!");
-                    Console.WriteLine();
-                    Console.WriteLine($"Calculated Hash: {tempHash}");
-                    Console.WriteLine($"Server Hash:     {serverHash}");
                 }
-            } catch { }
+
+                Console.WriteLine("ERROR!");
+                Console.WriteLine("Checksum mismatch!");
+                Console.WriteLine();
+                Console.WriteLine($"Calculated Hash: {tempHash}");
+                Console.WriteLine($"Server Hash:     {serverHash}");
+            } catch (Exception ex) {
+                Console.WriteLine("ERROR!");
+                Console.WriteLine();
+                Console.WriteLine(ex.ToString());
+            } finally {
+                // Remove temp file if not deleted by updater
+                if (File.Exists(tempFile)) {
+                    try { File.Delete(tempFile); } catch { }
+                }
+
+                // If updater failed (currentExe is missing) and backupExe still exists, try to restore it
+                if (movedToBackup && !File.Exists(currentExe) && File.Exists(backupExe)) {
+                    try { File.Move(backupExe, currentExe, true); } catch { }
+                }
+            }
 
             Console.WriteLine("Update failed, please update manually.");
             Console.WriteLine();
-            File.Move(currentExe + ".old", currentExe, true);
         }
 
         public static string CalculateSHA256(string filePath)

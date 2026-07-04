@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Edge case crash where driver download would ignore server errors. (Author: @Kkthnx)
 - Edge case crash if minimall install doesn't properly extract drivers, would cause crash. (Author: @Kkthnx)
+- Edge cases where self-updater would fail and crash. It now properly restores the old version. (Author: @Kkthnx)
 
 ## [1.25.0] - 2026-06-18
 ### Added
