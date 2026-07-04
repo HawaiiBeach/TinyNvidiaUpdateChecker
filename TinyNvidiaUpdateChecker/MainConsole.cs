@@ -306,12 +306,14 @@ namespace TinyNvidiaUpdateChecker
             }
 
             var updateAvailable = false;
-            var iOffline = int.Parse(OfflineGPUVersion.Replace(".", string.Empty));
-            var iOnline = int.Parse(OnlineGPUVersion.Replace(".", string.Empty));
 
-            if (iOnline == iOffline) {
+            Version.TryParse(OfflineGPUVersion, out Version vOffline);
+            Version.TryParse(OnlineGPUVersion, out Version vOnline);
+            int comparison = vOffline.CompareTo(vOnline);
+
+            if (comparison == 0) {
                 WriteLine("There is no new GPU driver available, you are up to date.");
-            } else if (iOffline > iOnline) {
+            } else if (comparison > 0) {
                 WriteLine("Your current GPU driver is newer than what NVIDIA reports!");
             } else {
                 WriteLine("There is a new GPU driver available to download!");
@@ -803,7 +805,6 @@ namespace TinyNvidiaUpdateChecker
                 File.Delete(path);
             }
 
-            HttpClient client = new();
             Progress<float> progress = new();
             Handlers.ProgressBar progressBar = null;
 
@@ -819,7 +820,7 @@ namespace TinyNvidiaUpdateChecker
 
             try {
                 using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.None))  {
-                    await client.DownloadDataAsync(url, file, progress);
+                    await httpClient.DownloadDataAsync(url, file, progress);
                 }
 
                 File.Move(path, path[..^5]); // rename back
@@ -905,8 +906,23 @@ namespace TinyNvidiaUpdateChecker
                 callExit(1);
             }
 
+            string extractedPath = $"{savePath}temp";
+
+            // If extraction was successful (code 0), but extract directory was not found
+            if (!Directory.Exists(extractedPath)) {
+                Write("ERROR!");
+                WriteLine();
+                WriteLine("The driver archive extracted without error but no files were found. Please rerun TNUC, and disable the Minimal Install feature if the issue doesn't go away.");
+                WriteLine();
+                WriteLine("Minimal Install info:");
+                WriteLine($"Library: {library}");
+                WriteLine($"Installation Directory: {libraryFile.GetInstallationDirectory()}");
+                WriteLine($"Expected extract path: {extractedPath}");
+                callExit(1);
+            }
+
             // Analyze with ComponentHandler
-            List<Handlers.Component> components = ComponentHandler.ParseComponentData($"{savePath}temp");
+            List<Handlers.Component> components = ComponentHandler.ParseComponentData(extractedPath);
             
             string textComponents = ConfigurationHandler.ReadSetting("Minimal install components", components, true);
             string[] arrayComponents = textComponents

@@ -11,6 +11,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
             List<Component> components = [];
             XmlDocument doc = new();
 
+            // Return empty list if directory is not found
+            if (!Directory.Exists(driverRootPath))
+            {
+                return components;
+            }
+
             foreach (string dir in Directory.GetDirectories(driverRootPath))
             {
                 string nviFile = FindNviFile(dir);
