@@ -28,6 +28,6 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Management" Version="10.0.8" />
+    <PackageReference Include="System.Management" Version="10.0.10" />
   </ItemGroup>
 </Project>

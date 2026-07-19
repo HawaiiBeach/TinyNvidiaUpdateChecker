@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.25.1] - 2026-07-19
 ### Fixed
 - Edge case crash where driver download would ignore server errors. (Author: @Kkthnx)
 - Edge case crash if minimall install doesn't properly extract drivers, would cause crash. (Author: @Kkthnx)
