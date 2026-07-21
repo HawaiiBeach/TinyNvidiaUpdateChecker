@@ -6,7 +6,7 @@ The best and __most popular__ open-sourced utility to check for NVIDIA GPU updat
 
 Made by Windows power users, to Windows power users.
 
-- [Join the community discord](https://discord.gg/CSckkRu9Y5)
+- [Join the community Discord](https://discord.gg/CSckkRu9Y5)
 
 ## Main features
 
