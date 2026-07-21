@@ -33,9 +33,9 @@ No bloatware gets installed.
 
 ## Installation
 
-1. [Download the latest version](https://github.com/ElPumpo/TinyNvidiaUpdateChecker/releases)
+1. [Download the latest version](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/releases)
 2. Start TinyNvidiaUpdateChecker.exe
-3. (Optional) Configure [execute when logging in](https://github.com/ElPumpo/TinyNvidiaUpdateChecker/wiki/Quiet-runs-on-user-login)
+3. (Optional) Configure [execute when logging in](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Quiet-runs-on-user-login)
 
 ### Install with [Scoop](https://scoop.sh/#/apps?s=2&d=1&o=true&p=1&q=tinynvidiaupdatechecker)
 
@@ -53,7 +53,7 @@ winget install Hawaii_Beach.TinyNvidiaUpdateChecker
 
 ## How to use
 
-Be sure to [check out the wiki](https://github.com/ElPumpo/TinyNvidiaUpdateChecker/wiki) to learn more about how to use TNUC.
+Be sure to [check out the wiki](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki) to learn more about how to use TNUC.
 
 ## Legal
 

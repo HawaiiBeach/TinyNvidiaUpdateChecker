@@ -38,7 +38,7 @@ namespace TinyNvidiaUpdateChecker
         /// <summary>
         /// URL for client update
         /// </summary>
-        public readonly static string updateUrl = "https://api.github.com/repos/ElPumpo/TinyNvidiaUpdateChecker/releases/latest";
+        public readonly static string updateUrl = "https://api.github.com/repos/HawaiiBeach/TinyNvidiaUpdateChecker/releases/latest";
 
         /// <summary>
         /// URL for NVIDIA Ajax API

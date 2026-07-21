@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.25.2] - 2026-07-21
+I've changed GitHub name, this update fixes the updater.
+
 ## [1.25.1] - 2026-07-19
 ### Fixed
 - Edge case crash where driver download would ignore server errors. (Author: @Kkthnx)
@@ -307,7 +310,7 @@ I am back, sorry for being inactive the past years. I've been very busy with GTA
 - Updated HAP to v1.8.4
 
 ### Fixed
-- Minimal installer not extracting new required EULA files [#41](https://github.com/ElPumpo/TinyNvidiaUpdateChecker/issues/41) - thanks [cywq](https://github.com/cywq)
+- Minimal installer not extracting new required EULA files [#41](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/issues/41) - thanks [cywq](https://github.com/cywq)
 
 ## [1.12.0] - 2018-03-09
 ### Added
@@ -318,7 +321,7 @@ I am back, sorry for being inactive the past years. I've been very busy with GTA
 - Updated HAP to v1.7.1
 
 ### Fixed
-- An issue where the file is still being used by TNUC after the drivers have been downloaded. This was the cause of [#26](https://github.com/ElPumpo/TinyNvidiaUpdateChecker/issues/26), thanks a lot [indivisible](https://github.com/indivisible) for fixing the issue, credits to him!
+- An issue where the file is still being used by TNUC after the drivers have been downloaded. This was the cause of [#26](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/issues/26), thanks a lot [indivisible](https://github.com/indivisible) for fixing the issue, credits to him!
 
 ## [1.11.0] - 2018-02-09
 ### Added
