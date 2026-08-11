@@ -9,8 +9,9 @@ This update focuses on community feedback from Discord. Make sure to join and le
 - [Join community Discord](https://discord.gg/CSckkRu9Y5)
 
 ### Added
+- New ready install UI, which allows you to browse driver folder, start installer, and delete temporary files
 - New command line argument `--local-driver={optional-path}`, [read more in the Wiki entry](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Command-Line-Arguments)
-- 
+
 ### Changed
 - Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time, and a new button has been added "Use last choosen components".
 
@@ -19,9 +20,9 @@ I've changed GitHub name, this update fixes the updater.
 
 ## [1.25.1] - 2026-07-19
 ### Fixed
-- Edge case crash where driver download would ignore server errors. (Author: @Kkthnx)
-- Edge case crash if minimall install doesn't properly extract drivers, would cause crash. (Author: @Kkthnx)
-- Edge cases where self-updater would fail and crash. It now properly restores the old version. (Author: @Kkthnx)
+- Edge case crash where driver download would ignore server errors (Author: @Kkthnx)
+- Edge case crash if minimall install doesn't properly extract drivers, would cause crash (Author: @Kkthnx)
+- Edge cases where self-updater would fail and crash. It now properly restores the old version (Author: @Kkthnx)
 
 ## [1.25.0] - 2026-06-18
 ### Added

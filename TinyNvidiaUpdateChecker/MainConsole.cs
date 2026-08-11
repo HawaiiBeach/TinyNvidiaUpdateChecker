@@ -394,29 +394,10 @@ namespace TinyNvidiaUpdateChecker
                 MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
             }
 
-            // Run driver installer
-            try
-            {
-                WriteLine();
-                Write("Executing driver installer . . . ");
+            // Show installer
+            string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
 
-                string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
-
-                ProcessStartInfo startInfo = new(fileName)
-                {
-                    UseShellExecute = true
-                };
-
-                Process.Start(startInfo).WaitForExit();
-                Write("OK!");
-            }
-            catch (Exception ex)
-            {
-                WriteLine("An error occurred preventing the driver installer to execute!");
-                WriteLine();
-                WriteLine(ex.ToString());
-                callExit(1);
-            }
+            ReadyInstallForm.handleInstall(fileName, false);
 
             callExit(0);
         }
@@ -844,43 +825,10 @@ namespace TinyNvidiaUpdateChecker
                 MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
             }
 
-            try {
-                WriteLine();
-                Write("Executing driver installer . . . ");
+            string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
 
-                string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
-
-                ProcessStartInfo startInfo = new(fileName) {
-                    UseShellExecute = true
-                };
-
-                if (minimized) {
-                    startInfo.Arguments = "/s /noreboot";
-                }
-
-                Process.Start(startInfo).WaitForExit();
-                Write("OK!");
-            } catch (Exception ex) {
-                WriteLine("An error occurred preventing the driver installer to execute!");
-                WriteLine();
-                WriteLine(ex.ToString());
-                callExit(1);
-            }
-
-            WriteLine();
-
-            if (!keepDriver)
-            {
-                try
-                {
-                    Directory.Delete(FULL_PATH_DIRECTORY, true);
-                    WriteLine($"Cleaned up: {FULL_PATH_DIRECTORY}");
-                }
-                catch
-                {
-                    WriteLine($"Could not cleanup: {FULL_PATH_DIRECTORY}");
-                }
-            }
+            // Handle driver install
+            ReadyInstallForm.handleInstall(fileName, minimized, keepDriver);
         }
 
         /// <summary>
