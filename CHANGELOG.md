@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.26.0] - 2026-08-11
 This update focuses on community feedback from Discord. Make sure to join and let me know what you think about the new features, and if you have any (good) suggestions.
 - [Join community Discord](https://discord.gg/CSckkRu9Y5)
 
@@ -14,7 +14,7 @@ This update focuses on community feedback from Discord. Make sure to join and le
 
 ### Changed
 - Configuration file is now stored in `%localappdata%\TinyNvidiaUpdateChecker\` instead of `%localappdata%\Hawaii_Beach\TinyNvidiaUpdateChecker\`. It auto migrates the old config file to the new location, and deletes the old config.
-- Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time, and a new button has been added "Use last choosen components".
+- Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time (except quiet mode), and a new button has been added "Last used".
 
 ## [1.25.2] - 2026-07-21
 I've changed GitHub name, this update fixes the updater.
