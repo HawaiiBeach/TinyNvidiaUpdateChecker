@@ -92,9 +92,19 @@ namespace TinyNvidiaUpdateChecker
         private static bool forceDL = false;
 
         /// <summary>
-        /// Will automaticly download and install drivers
+        /// Perform automatic download and install
         /// </summary>
         public static bool confirmDL = false;
+
+        /// <summary>
+        /// Use a local driver on system instead of downloading
+        /// </summary>
+        public static bool useLocalDriver = false;
+
+        /// <summary>
+        /// Local driver path
+        /// </summary>
+        public static string localDriverPath = null;
 
         /// <summary>
         /// If this value is set then it will override the default configuration file location
@@ -170,6 +180,11 @@ namespace TinyNvidiaUpdateChecker
 
             if (ConfigurationHandler.ReadSettingBool("Check for Updates")) {
                 UpdateHandler.SearchForUpdate(args);
+            }
+
+            // If the user has specified to use a local driver, use custom flow
+            if (useLocalDriver) {
+                localDriverInstall();
             }
 
             Write("Retrieving GPU information . . . ");
@@ -332,6 +347,79 @@ namespace TinyNvidiaUpdateChecker
             callExit(0);
         }
 
+        // Local driver install flow
+        private static void localDriverInstall()
+        {
+            bool fileExists = localDriverPath != null && File.Exists(localDriverPath);
+            string selectedFilePath = null;
+
+            if (fileExists)
+            {
+                selectedFilePath = localDriverPath;
+                WriteLine($"Using local driver: {localDriverPath}");
+            }
+            else
+            {
+                // Open file dialog to select driver
+                using var dialog = new OpenFileDialog
+                {
+                    Title = "Select NVIDIA driver",
+                    Filter = "NVIDIA driver (*.exe)|*.exe",
+                    CheckFileExists = true,
+                    Multiselect = false
+                };
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    selectedFilePath = dialog.FileName;
+                    WriteLine($"Selected file: {selectedFilePath}");
+                }
+                else
+                {
+                    WriteLine("No file selected. Exiting.");
+                    callExit(1);
+                }
+            }
+
+            string driverFileName = Path.GetFileName(selectedFilePath);
+            string FULL_PATH_DIRECTORY = Path.GetDirectoryName(Path.GetFullPath(selectedFilePath)) + Path.DirectorySeparatorChar;
+            string FULL_PATH_DRIVER = FULL_PATH_DIRECTORY + driverFileName;
+
+            bool minimalInstaller = ConfigurationHandler.ReadSettingBool("Minimal install");
+
+            if (minimalInstaller)
+            {
+                bool minimized = false; // forced off for now
+                MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+            }
+
+            // Run driver installer
+            try
+            {
+                WriteLine();
+                Write("Executing driver installer . . . ");
+
+                string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
+
+                ProcessStartInfo startInfo = new(fileName)
+                {
+                    UseShellExecute = true
+                };
+
+                Process.Start(startInfo).WaitForExit();
+                Write("OK!");
+            }
+            catch (Exception ex)
+            {
+                WriteLine("An error occurred preventing the driver installer to execute!");
+                WriteLine();
+                WriteLine(ex.ToString());
+                callExit(1);
+            }
+
+            callExit(0);
+        }
+
         /// <summary>
         /// Handles the command line arguments </summary>
         /// <param name="args"> Command line arguments in. Turned out that Environment.GetCommandLineArgs() wasn't any good.</param>
@@ -373,6 +461,13 @@ namespace TinyNvidiaUpdateChecker
                 // enable debugging
                 else if (arg.ToLower() == "--debug") {
                     debug = true;
+                }
+
+                // enable useLocalDriver + optional localDriverPath
+                else if (arg.ToLower().Contains("--driver-path")) {
+                    useLocalDriver = true;
+                    var pathArg = arg.Substring(arg.IndexOf('=') + 1);
+                    localDriverPath = pathArg;
                 }
 
                 // force driver download
@@ -418,14 +513,15 @@ namespace TinyNvidiaUpdateChecker
                     WriteLine("--dry-run                    Perform a dry run.");
                     WriteLine("--erase-config               Erase configuration file.");
                     WriteLine("--debug                      Turn debugging on, will output more information that can be used for debugging.");
+                    WriteLine("--driver-path=<optional>     Install (and perform minimal install, if enabled) a local driver on the system.");
                     WriteLine("--force-dl                   Force prompt to download drivers, even if the user is up-to-date - should only be used for debugging.");
                     WriteLine("--version                    View version.");
                     WriteLine("--confirm-dl                 Automatically download and install the driver quietly without any user interaction at all. should be used with '--quiet' for the optimal solution.");
                     WriteLine("--config-here                Use the working directory as path to the configuration file.");
                     WriteLine("--config-override=<path>     Override configuration file location with absolute file path.");
-                    WriteLine("--help                       Shows help.");
                     WriteLine("--override-desktop           Override automatic desktop/notebook identification.");
                     WriteLine("--override-notebook          Override automatic desktop/notebook identification.");
+                    WriteLine("--help                       Show all commands.");
                     Environment.Exit(0);
                 }
 

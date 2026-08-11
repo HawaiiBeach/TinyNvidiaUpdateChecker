@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+This update focuses on community feedback from Discord. Make sure to join and let me know what you think about the new features, and if you have any (good) suggestions.
+- [Join community Discord](https://discord.gg/CSckkRu9Y5)
+
+### Added
+- New command line argument `--local-driver={optional-path}`, [read more in the Wiki entry](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Command-Line-Arguments)
+- 
 ### Changed
 - Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time, and a new button has been added "Use last choosen components".
 
