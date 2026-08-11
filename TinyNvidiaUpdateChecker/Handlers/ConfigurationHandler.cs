@@ -15,9 +15,17 @@ namespace TinyNvidiaUpdateChecker.Handlers
     {
 
         /// <summary>
-        /// Configuration directory path, blueprint: <local-appdata><author><project-name>
+        /// Configuration directory path, blueprint: <local-appdata><project-name>
         /// </summary>
         public static string configDirectoryPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "TinyNvidiaUpdateChecker"
+        );
+
+        /// <summary>
+        /// Old configuration directory path
+        /// </summary>
+        public static string oldConfigDirectoryPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Hawaii_Beach",
             "TinyNvidiaUpdateChecker"
@@ -40,6 +48,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine($"configFile: {configFilePath}");
             }
 
+            // Only migrate if not using override
+            if (overrideConfigFileLocation == null)
+            {
+                migrateConfigIfNeeded();
+            }
+ 
             // create config file
             if (!File.Exists(configFilePath)) {
                 Console.WriteLine("Generating configuration file.");
@@ -239,6 +253,31 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     return true;
                 } else {
                     return false;
+                }
+            }
+        }
+
+        // Migrate config location
+        private static void migrateConfigIfNeeded()
+        {
+            if (Directory.Exists(oldConfigDirectoryPath) && !Directory.Exists(configDirectoryPath))
+            {
+                try
+                {
+                    MainConsole.Write("Migrating configuration directory . . . ");
+                    Directory.Move(oldConfigDirectoryPath, configDirectoryPath);
+
+                    string parentDirectory = Directory.GetParent(oldConfigDirectoryPath).FullName;
+                    Directory.Delete(parentDirectory);
+                    MainConsole.Write("OK!");
+                    MainConsole.WriteLine();
+                }
+                catch (Exception ex)
+                {
+                    MainConsole.Write("ERROR!");
+                    MainConsole.WriteLine();
+                    MainConsole.WriteLine($"Failed to migrate configuration: {ex.Message}");
+                    MainConsole.WriteLine();
                 }
             }
         }

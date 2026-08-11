@@ -13,6 +13,7 @@ This update focuses on community feedback from Discord. Make sure to join and le
 - New command line argument `--local-driver={optional-path}`, [read more in the Wiki entry](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Command-Line-Arguments)
 
 ### Changed
+- Configuration file is now stored in `%localappdata%\TinyNvidiaUpdateChecker\` instead of `%localappdata%\Hawaii_Beach\TinyNvidiaUpdateChecker\`. It auto migrates the old config file to the new location, and deletes the old config.
 - Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time, and a new button has been added "Use last choosen components".
 
 ## [1.25.2] - 2026-07-21
