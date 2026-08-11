@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using TinyNvidiaUpdateChecker.Forms;
 using TinyNvidiaUpdateChecker.Handlers;
 
 namespace TinyNvidiaUpdateChecker
@@ -922,15 +923,25 @@ namespace TinyNvidiaUpdateChecker
             }
 
             // Analyze with ComponentHandler
-            List<Handlers.Component> components = ComponentHandler.ParseComponentData(extractedPath);
-            
-            string textComponents = ConfigurationHandler.ReadSetting("Minimal install components", components, true);
-            string[] arrayComponents = textComponents
-                .Split(", ")
-                .Select(s => s.Trim())
-                .ToArray();
+            List<Component> driverComponents = ComponentHandler.ParseComponentData(extractedPath);
 
-            string[] extractFiles = [.. arrayComponents, "NVI2", "EULA.txt", "license.txt", "ListDevices.txt", "setup.cfg", "setup.exe"];
+            // If config entry exists, show "Use last used components" button
+            string configComponentsString = ConfigurationHandler.ReadSetting("Minimal install components", null, false);
+
+            ComponentChooserForm componentForm = new();
+
+            // Open component form
+            // If quiet mode + configComponents exists, it will not show dialog, and will use configComponents
+            (List<string> chosenComponents, bool saveConfig) =
+                componentForm.OpenForm(driverComponents, configComponentsString);
+
+
+            // Save latest used components to config file if user selected "Save selection"
+            if (saveConfig) {
+                ConfigurationHandler.SetSetting("Minimal install components", string.Join(", ", chosenComponents));
+            }
+
+            string[] extractFiles = [.. chosenComponents, "NVI2", "EULA.txt", "license.txt", "ListDevices.txt", "setup.cfg", "setup.exe"];
 
             foreach (string file in extractFiles) {
                 string filePath = Path.Combine(savePath, "temp", file);

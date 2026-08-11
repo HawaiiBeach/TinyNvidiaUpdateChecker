@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Changed
+- Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time, and a new button has been added "Use last choosen components".
+
 ## [1.25.2] - 2026-07-21
 I've changed GitHub name, this update fixes the updater.
 

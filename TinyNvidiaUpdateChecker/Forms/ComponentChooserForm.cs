@@ -9,7 +9,8 @@ namespace TinyNvidiaUpdateChecker.Forms
     public partial class ComponentChooserForm : Form
     {
         List<Component> componentList;
-        List<string> choosenComponents = [];
+        List<string> chosenComponents = [];
+        string[] configComponents = [];
         int driverIdx = 0;
 
         public ComponentChooserForm()
@@ -17,12 +18,28 @@ namespace TinyNvidiaUpdateChecker.Forms
             InitializeComponent();
         }
 
-        public List<string> OpenForm(List<Component> _componentList)
+        public (List<string>, bool saveConfig) OpenForm(List<Component> _componentList, string configComponentsString = null)
         {
             componentList = _componentList;
+
+            // Parse configComponentsString into an array if it exists
+            if (configComponentsString != null)
+            {
+                configComponents = configComponentsString.Split(", ", StringSplitOptions.RemoveEmptyEntries);
+            }
+
+            // If quiet mode + config entry exist, return latest used co
+            if (!MainConsole.showUI && configComponents != null)
+            {
+                return (configComponents.ToList(), false);
+            }
+
+            // If config entry does not exist, hide the latest used components link
+            if (configComponentsString == null) latestLabel.Visible = false;
+
             ShowDialog();
 
-            return choosenComponents;
+            return (chosenComponents, true);
         }
 
         private void ComponentChooserForm_Load(object sender, System.EventArgs e)
@@ -64,7 +81,7 @@ namespace TinyNvidiaUpdateChecker.Forms
         private void okButton_Click(object sender, System.EventArgs e)
         {
             Enabled = false;
-            choosenComponents.Clear();
+            chosenComponents.Clear();
 
             Dictionary<string, bool> dependencyList = new() {
                 {"Display.Driver", checkedListBox.CheckedIndices.Contains(driverIdx)}
@@ -73,7 +90,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             foreach (int idx in checkedListBox.CheckedIndices)
             {
                 Component comp = componentList.Where(x => x.index >= idx).First();
-                choosenComponents.Add(comp.name);
+                chosenComponents.Add(comp.name);
 
                 foreach (KeyValuePair<string, string> dependency in comp.dependencies)
                 {
@@ -122,6 +139,17 @@ namespace TinyNvidiaUpdateChecker.Forms
             for (int i = 0; i < checkedListBox.Items.Count; i++)
             {
                 checkedListBox.SetItemChecked(i, true);
+            }
+        }
+
+        // Loop through configComponents and apply to components list box
+        private void latestLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            foreach (Component component in componentList)
+            {
+                int index = component.index;
+                bool isInConfig = configComponents.Contains(component.name);
+                checkedListBox.SetItemChecked(index, isInConfig);
             }
         }
     }
