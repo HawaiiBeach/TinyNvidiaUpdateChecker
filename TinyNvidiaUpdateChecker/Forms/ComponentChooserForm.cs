@@ -18,9 +18,9 @@ namespace TinyNvidiaUpdateChecker.Forms
             InitializeComponent();
         }
 
-        public (List<string>, bool saveConfig) OpenForm(List<Component> _componentList, string configComponentsString = null)
+        public (List<string>, bool saveConfig) OpenForm(List<Component> componentList, string configComponentsString = null)
         {
-            componentList = _componentList;
+            this.componentList = componentList;
 
             // Parse configComponentsString into an array if it exists
             if (configComponentsString != null)

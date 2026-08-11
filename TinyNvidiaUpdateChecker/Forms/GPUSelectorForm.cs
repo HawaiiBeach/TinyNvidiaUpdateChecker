@@ -12,9 +12,9 @@ namespace TinyNvidiaUpdateChecker
 
         public GPUSelectorForm() => InitializeComponent();
 
-        public string OpenForm(List<GPU> _gpuList)
+        public string OpenForm(List<GPU> gpuList)
         {
-            gpuList = _gpuList;
+            this.gpuList = gpuList;
             ShowDialog();
 
             return validatedList[comboBox.SelectedIndex].ToString();

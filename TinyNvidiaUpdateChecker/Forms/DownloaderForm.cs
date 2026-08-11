@@ -6,16 +6,16 @@ namespace TinyNvidiaUpdateChecker
 {
     public partial class DownloaderForm : Form
     {
-        private readonly string _downloadURL;
-        private readonly string _savePath;
+        string downloadURL;
+        string savePath;
 
         public Exception Error { get; private set; }
 
         public DownloaderForm(string downloadURL, string savePath)
         {
             InitializeComponent();
-            _downloadURL = downloadURL;
-            _savePath = savePath;
+            this.downloadURL = downloadURL;
+            this.savePath = savePath;
         }
 
         protected override async void OnShown(EventArgs e)
@@ -28,8 +28,8 @@ namespace TinyNvidiaUpdateChecker
             try
             {
                 await Task.Run(() => MainConsole.HandleDownload(
-                    _downloadURL,
-                    _savePath,
+                    downloadURL,
+                    savePath,
                     (s, value) => ((IProgress<float>)progress).Report(value)));
             }
             catch (Exception ex)

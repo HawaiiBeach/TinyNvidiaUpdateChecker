@@ -17,9 +17,9 @@ namespace TinyNvidiaUpdateChecker
             InitializeComponent();
         }
 
-        public static void ShowGUI(DriverMetadata _metadata)
+        public static void ShowGUI(DriverMetadata metadata)
         {
-            metadata = _metadata;
+            DriverDialog.metadata = metadata;
             using DriverDialog form = new();
             form.ShowDialog();
         }
