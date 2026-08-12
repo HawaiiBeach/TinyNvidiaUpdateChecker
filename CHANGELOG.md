@@ -10,11 +10,11 @@ This update focuses on community feedback from Discord. Make sure to join and le
 
 ### Added
 - New ready install UI, which allows you to browse driver folder, start installer, and delete temporary files
-- New command line argument `--local-driver={optional-path}`, [read more in the Wiki entry](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Command-Line-Arguments)
+- New command line argument `--driver-path=<optional>`, [read more in the Wiki entry](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Command-Line-Arguments)
 
 ### Changed
-- Configuration file is now stored in `%localappdata%\TinyNvidiaUpdateChecker\` instead of `%localappdata%\Hawaii_Beach\TinyNvidiaUpdateChecker\`. It auto migrates the old config file to the new location, and deletes the old config.
-- Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time (except quiet mode), and a new button has been added "Last used".
+- Configuration file is now stored in `%localappdata%\TinyNvidiaUpdateChecker\` instead of `%localappdata%\Hawaii_Beach\TinyNvidiaUpdateChecker\`. It auto migrates the old config file to the new location, and deletes the old config
+- Minimal installer no longer uses the latest choosen components saved in config, instead shows the dialog every time (except quiet mode), and a new button has been added "Last used"
 
 ## [1.25.2] - 2026-07-21
 I've changed GitHub name, this update fixes the updater.
