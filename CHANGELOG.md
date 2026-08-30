@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Custom error message for when client update failed due to missing write permissions
+- Hide local source path in error messages (C:\Users\....)
+
 ## [1.26.0] - 2026-08-11
 This update focuses on community feedback from Discord. Make sure to join and let me know what you think about the new features, and if you have any (good) suggestions.
 - [Join community Discord](https://discord.gg/CSckkRu9Y5)

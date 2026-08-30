@@ -97,6 +97,10 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine();
                 Console.WriteLine($"Calculated Hash: {tempHash}");
                 Console.WriteLine($"Server Hash:     {serverHash}");
+            } catch (UnauthorizedAccessException ex) {
+                Console.WriteLine("ERROR!");
+                Console.WriteLine();
+                Console.WriteLine("Access to update the current TNUC installation was denied due to unauthorized access. Please rerun TNUC as admin, or update manually.");
             } catch (Exception ex) {
                 Console.WriteLine("ERROR!");
                 Console.WriteLine();
@@ -113,7 +117,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 }
             }
 
-            Console.WriteLine("Update failed, please update manually.");
+            Console.WriteLine("Automatic update failed, please update manually.");
             Console.WriteLine();
         }
 
