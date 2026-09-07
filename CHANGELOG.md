@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Custom error message for when client update failed due to missing write permissions
 
 ### Fixed
+- DPI inconsistencies caused "New driver form" to be zoomed in
 - "Delete temp files" would delete the full download folder, deleting potential none-TNUC related files. Now it only deletes relevant files, and only deletes the folder if it's empty
 
 ### Changed

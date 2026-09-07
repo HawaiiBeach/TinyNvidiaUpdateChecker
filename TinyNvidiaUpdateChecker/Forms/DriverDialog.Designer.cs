@@ -219,8 +219,8 @@ namespace TinyNvidiaUpdateChecker
             // 
             // DriverDialog
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             ClientSize = new System.Drawing.Size(527, 351);
             Controls.Add(configButton);
             Controls.Add(webBrowser1);

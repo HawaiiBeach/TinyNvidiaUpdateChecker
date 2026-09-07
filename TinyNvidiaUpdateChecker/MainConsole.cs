@@ -144,6 +144,7 @@ namespace TinyNvidiaUpdateChecker
         [STAThread]
         private static void Main(string[] args)
         {
+            ApplicationConfiguration.Initialize();
             string message = $"TinyNvidiaUpdateChecker v{offlineVer}";
             
             CheckArgs(args);
