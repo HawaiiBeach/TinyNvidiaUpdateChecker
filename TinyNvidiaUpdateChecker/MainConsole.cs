@@ -387,17 +387,22 @@ namespace TinyNvidiaUpdateChecker
             string FULL_PATH_DRIVER = FULL_PATH_DIRECTORY + driverFileName;
 
             bool minimalInstaller = ConfigurationHandler.ReadSettingBool("Minimal install");
+            List<string> tempFiles = [driverFileName];
 
-            if (minimalInstaller)
-            {
+            if (minimalInstaller) {
                 bool minimized = false; // forced off for now
-                MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+
+                // Perform minimal install
+                string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+
+                // Add minimal temp files
+                tempFiles.AddRange(minimalInstallTempFiles);
             }
 
             // Show installer
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
 
-            ReadyInstallForm.handleInstall(fileName, false);
+            ReadyInstallForm.handleInstall(fileName, false, tempFiles);
 
             callExit(0);
         }
@@ -820,15 +825,20 @@ namespace TinyNvidiaUpdateChecker
             }
 
             bool minimalInstaller = ConfigurationHandler.ReadSettingBool("Minimal install");
+            List<string> tempFiles = [driverFileName];
 
             if (minimalInstaller) {
-                MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+                // Perform minimal install
+                string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+
+                // Add minimal temp files
+                tempFiles.AddRange(minimalInstallTempFiles);
             }
 
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
 
             // Handle driver install
-            ReadyInstallForm.handleInstall(fileName, minimized, keepDriver);
+            ReadyInstallForm.handleInstall(fileName, minimized, tempFiles, keepDriver);
         }
 
         /// <summary>
@@ -881,7 +891,7 @@ namespace TinyNvidiaUpdateChecker
         /// <summary>
         /// Remove telementry and only extract basic drivers
         /// </summary>
-        private static void MakeInstaller(bool silent, string savePath, string fileName)
+        private static string[] MakeInstaller(bool silent, string savePath, string fileName)
         {
             WriteLine();
             Write("Extracting drivers . . . ");
@@ -980,7 +990,6 @@ namespace TinyNvidiaUpdateChecker
             (List<string> chosenComponents, bool saveConfig) =
                 componentForm.OpenForm(driverComponents, configComponentsString);
 
-
             // Save latest used components to config file if user selected "Save selection"
             if (saveConfig) {
                 ConfigurationHandler.SetSetting("Minimal install components", string.Join(", ", chosenComponents));
@@ -1052,6 +1061,7 @@ namespace TinyNvidiaUpdateChecker
 
             Write("OK!");
             WriteLine();
+            return extractFiles;
         }
 
         /// <summary>

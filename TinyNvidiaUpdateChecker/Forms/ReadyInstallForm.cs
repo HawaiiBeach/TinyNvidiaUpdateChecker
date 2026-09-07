@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
@@ -9,22 +10,25 @@ namespace TinyNvidiaUpdateChecker.Forms
     {
         string driverPath;
         string folderPath;
+        List<string> tempFiles;
         bool hasDeletedTempFiles = false;
         bool hasRunInstaller = false;
         bool isInstallerRunning = false;
 
-        public ReadyInstallForm(string driverPath)
+        public ReadyInstallForm(string driverPath, List<string> tempFiles)
         {
             this.driverPath = driverPath;
             this.folderPath = Path.GetDirectoryName(driverPath);
+            this.tempFiles = tempFiles;
+
             InitializeComponent();
         }
 
-        public static void handleInstall(string driverPath, bool minimized, bool keepDriver = false)
+        public static void handleInstall(string driverPath, bool minimized, List<string> tempFiles, bool keepDriver = false)
         {
             if (!minimized)  
             {
-                using ReadyInstallForm form = new(driverPath);
+                using ReadyInstallForm form = new(driverPath, tempFiles);
                 form.ShowDialog();
             }
             else
@@ -96,12 +100,13 @@ namespace TinyNvidiaUpdateChecker.Forms
 
                 if (result == DialogResult.Yes)
                 {
-                    try
+                    bool success = deleteTempFiles();
+
+                    if (success)
                     {
-                        Directory.Delete(folderPath, true);
                         hasDeletedTempFiles = true;
                     }
-                    catch
+                    else
                     {
                         MessageBox.Show("Could not delete temporary files!", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
@@ -153,9 +158,10 @@ namespace TinyNvidiaUpdateChecker.Forms
 
         private void deleteBtn_Click(object sender, EventArgs e)
         {
-            try
+            bool success = deleteTempFiles();
+
+            if (success)
             {
-                Directory.Delete(folderPath, true);
 
                 hasDeletedTempFiles = true;
                 deleteBtn.Enabled = false;
@@ -163,7 +169,7 @@ namespace TinyNvidiaUpdateChecker.Forms
                 folderBtn.Enabled = false;
                 MessageBox.Show("Deleted temporary files", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch
+            else
             {
                 MessageBox.Show("Could not delete temporary files!", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -178,6 +184,39 @@ namespace TinyNvidiaUpdateChecker.Forms
                     FileName = folderPath,
                     UseShellExecute = true
                 });
+            }
+        }
+
+        // Delete temporary files, and the parent folder if it is empty
+        private bool deleteTempFiles()
+        {
+            try
+            {
+                foreach (string entry in tempFiles)
+                {
+                    string path = Path.Combine(folderPath, entry);
+
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+                    else if (Directory.Exists(path))
+                    {
+                        Directory.Delete(path, true);
+                    }
+                }
+
+                // If directory is empty after deleting tempFiles, delete it as well
+                if (Directory.GetFiles(folderPath).Length == 0 && Directory.GetDirectories(folderPath).Length == 0)
+                {
+                    Directory.Delete(folderPath);
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }
