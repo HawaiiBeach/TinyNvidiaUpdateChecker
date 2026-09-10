@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Reverted DPI scaling changes
+
 ## [1.26.1] - 2026-09-07
 ### Added
 - Custom error message for when client update failed due to missing write permissions
