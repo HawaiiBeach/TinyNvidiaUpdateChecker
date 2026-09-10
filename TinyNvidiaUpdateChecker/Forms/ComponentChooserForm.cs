@@ -76,6 +76,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             }
 
             richTextBox.Text = description;
+            richTextBox.Text += $"\n\nComponent version: {comp.version}";
         }
 
         private void okButton_Click(object sender, System.EventArgs e)

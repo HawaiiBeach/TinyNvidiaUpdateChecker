@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
@@ -27,10 +28,21 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     string name = Path.GetFileName(dir);
                     string label = FindNviLabel(doc, name);
 
+                    // Get version
+                    string version = doc.SelectSingleNode("nvi/@version | nvi/@Version")?.Value ?? "Unknown";
+
+                    // If version is placeholder
+                    if (version.ToLower() == "${{version}}")
+                    {
+                        version = doc.SelectSingleNode("nvi/strings/string[@name='version' or @name='Version']/@value")?.Value ?? "Unknown";
+                    }
+
                     componentLabel[name] = label;
                     Dictionary<string, string> dependencies = FindNviDependencies(doc);
 
-                    Component component = new(name, label, dependencies);
+                    // Craft component
+                    Component component = new(name, label, version, dependencies);
+
                     components.Add(component);
                 }
             }
@@ -252,10 +264,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
         };
     }
 
-    public class Component(string name, string label, Dictionary<string, string> dependencies)
+    public class Component(string name, string label, string version, Dictionary<string, string> dependencies)
     {
         public string name = name;
         public string label = label;
+        public string version = version;
         public Dictionary<string, string> dependencies = dependencies;
         public int index;
     }

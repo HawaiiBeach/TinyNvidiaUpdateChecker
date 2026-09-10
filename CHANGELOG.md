@@ -5,8 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Show individual component versions
+
 ### Fixed
-- Reverted DPI scaling changes
+- Reverted DPI scaling changes on main UI
 
 ## [1.26.1] - 2026-09-07
 ### Added
