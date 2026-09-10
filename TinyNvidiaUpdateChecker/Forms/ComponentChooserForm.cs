@@ -42,7 +42,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             return (chosenComponents, true);
         }
 
-        private void ComponentChooserForm_Load(object sender, System.EventArgs e)
+        private void ComponentChooserForm_Load(object sender, EventArgs e)
         {
             foreach (Component component in componentList)
             {
@@ -54,9 +54,9 @@ namespace TinyNvidiaUpdateChecker.Forms
             }
         }
 
-        private void checkedListBox_SelectedValueChanged(object sender, System.EventArgs e)
+        private void checkedListBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            Component comp = componentList.Where(x => x.index == checkedListBox.SelectedIndex).First();
+            Component comp = componentList.First(x => x.index == checkedListBox.SelectedIndex);
             string description = ComponentHandler.GetComponentDescription(comp.name);
 
             if (comp.dependencies.Count > 0)
@@ -79,7 +79,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             richTextBox.Text += $"\n\nComponent version: {comp.version}";
         }
 
-        private void okButton_Click(object sender, System.EventArgs e)
+        private void okButton_Click(object sender, EventArgs e)
         {
             Enabled = false;
             chosenComponents.Clear();
@@ -90,7 +90,7 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             foreach (int idx in checkedListBox.CheckedIndices)
             {
-                Component comp = componentList.Where(x => x.index >= idx).First();
+                Component comp = componentList.First(x => x.index >= idx);
                 chosenComponents.Add(comp.name);
 
                 foreach (KeyValuePair<string, string> dependency in comp.dependencies)
@@ -101,7 +101,7 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             foreach (int idx in checkedListBox.CheckedIndices)
             {
-                Component comp = componentList.Where(x => x.index >= idx).First();
+                Component comp = componentList.First(x => x.index >= idx);
 
                 if (dependencyList.ContainsKey(comp.name))
                 {
@@ -109,7 +109,7 @@ namespace TinyNvidiaUpdateChecker.Forms
                 }
             }
 
-            bool canProceed = dependencyList.Where(x => x.Value == true).Count() == dependencyList.Count;
+            bool canProceed = dependencyList.Count(x => x.Value == true) == dependencyList.Count;
 
             if (canProceed)
             {
