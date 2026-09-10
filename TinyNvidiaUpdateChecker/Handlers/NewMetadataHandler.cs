@@ -33,6 +33,9 @@ public class CombinedGpuData
     public List<DriverVersion> versions { get; set; }
 }
 
+/// <summary>
+/// This class handles the retrieval and processing of GPU metadata provided by TechPowerUp
+/// </summary>
 public class NewMetadataHandler
 {
     private static CombinedGpuData _combinedGpuData;
