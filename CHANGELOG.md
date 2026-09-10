@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Reverted DPI scaling changes on main UI
 
+### Changed
+- 'Last used' component selection is now default
+
 ## [1.26.1] - 2026-09-07
 ### Added
 - Custom error message for when client update failed due to missing write permissions

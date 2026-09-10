@@ -52,6 +52,11 @@ namespace TinyNvidiaUpdateChecker.Forms
 
                 if (component.name == "Display.Driver") { driverIdx = idx; }
             }
+
+            // Apply last used as default
+            if (configComponents.Length > 0) {
+                latestLabel_LinkClicked(latestLabel, new LinkLabelLinkClickedEventArgs(latestLabel.Links[0]));
+            }
         }
 
         private void checkedListBox_SelectedValueChanged(object sender, EventArgs e)
