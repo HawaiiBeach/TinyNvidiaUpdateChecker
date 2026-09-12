@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
 using TinyNvidiaUpdateChecker.Forms;
+using TinyNvidiaUpdateChecker.Handlers;
 
 namespace TinyNvidiaUpdateChecker
 {
