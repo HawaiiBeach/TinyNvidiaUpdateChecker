@@ -29,7 +29,7 @@ No bloatware gets installed.
 ## Dependencies
 
 - Windows 10 or higher
-- [.NET Desktop Runtime 8 x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (it will be prompted to install if missing)
+- [.NET Desktop Runtime 8 x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (it will be prompted to install if missing, or install with `winget install Microsoft.DotNet.DesktopRuntime.8`)
 - Internet connection
 - (optional) WinRAR, 7-Zip or NanaZip for minimal install feature (driver debloat)
 
@@ -42,6 +42,7 @@ No bloatware gets installed.
 ### Install with [Scoop](https://scoop.sh/#/apps?s=2&d=1&o=true&p=1&q=tinynvidiaupdatechecker)
 
 ```
+winget install Microsoft.DotNet.DesktopRuntime.8
 scoop bucket add extras
 scoop install tinynvidiaupdatechecker
 ```
@@ -49,6 +50,7 @@ scoop install tinynvidiaupdatechecker
 ### Install with [Windows Package Manager](https://github.com/microsoft/winget-pkgs)
 
 ```
+winget install Microsoft.DotNet.DesktopRuntime.8
 winget source update
 winget install Hawaii_Beach.TinyNvidiaUpdateChecker
 ```
