@@ -50,8 +50,8 @@ scoop install tinynvidiaupdatechecker
 ### Install with [Windows Package Manager](https://github.com/microsoft/winget-pkgs)
 
 ```
-winget install Microsoft.DotNet.DesktopRuntime.8
 winget source update
+winget install Microsoft.DotNet.DesktopRuntime.8
 winget install Hawaii_Beach.TinyNvidiaUpdateChecker
 ```
 
