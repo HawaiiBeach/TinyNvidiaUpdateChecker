@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.26.2] - 2026-09-12
 ### Added
 - Show individual component versions
+- UIs now play a sound and "flash" to get user attention
 
 ### Fixed
+- Ready install UI would not show traybar icon
 - Reverted DPI scaling changes on main UI
 
 ### Changed

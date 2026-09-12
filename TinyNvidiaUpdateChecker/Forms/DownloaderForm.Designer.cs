@@ -49,9 +49,8 @@
             Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
             Name = "DownloaderForm";
-            ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "TinyNvidiaUpdateChecker - Progress Bar";
+            Text = "TinyNvidiaUpdateChecker - Downloading update";
             ResumeLayout(false);
         }
 

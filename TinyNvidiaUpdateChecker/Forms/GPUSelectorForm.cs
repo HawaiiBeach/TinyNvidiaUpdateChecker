@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using TinyNvidiaUpdateChecker.Handlers;
 
 namespace TinyNvidiaUpdateChecker
 {
@@ -22,7 +23,8 @@ namespace TinyNvidiaUpdateChecker
 
         private void GPUSelectorForm_Load(object sender, EventArgs e)
         {
-            foreach (var gpu in gpuList.Where(x => x.isValidated)) {
+            foreach (var gpu in gpuList.Where(x => x.isValidated))
+            {
                 int index = comboBox.Items.Add(gpu.name);
                 validatedList.Add(index, gpu.deviceId);
             }
@@ -31,5 +33,11 @@ namespace TinyNvidiaUpdateChecker
         private void ConfirmBtn_Click(object sender, EventArgs e) => Close();
 
         private void comboBox_SelectedIndexChanged(object sender, EventArgs e) => ConfirmBtn.Enabled = true;
+
+        private void GPUSelectorForm_Shown(object sender, EventArgs e)
+        {
+            // Flash and play sound
+            this.Flash(true);
+        }
     }
 }

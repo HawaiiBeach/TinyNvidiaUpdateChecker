@@ -86,6 +86,7 @@
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "TinyNvidiaUpdateChecker - Choose GPU";
             Load += GPUSelectorForm_Load;
+            Shown += GPUSelectorForm_Shown;
             ResumeLayout(false);
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using TinyNvidiaUpdateChecker.Handlers;
 
 namespace TinyNvidiaUpdateChecker.Forms
 {
@@ -26,7 +27,7 @@ namespace TinyNvidiaUpdateChecker.Forms
 
         public static void handleInstall(string driverPath, bool minimized, List<string> tempFiles, bool keepDriver = false)
         {
-            if (!minimized)  
+            if (!minimized)
             {
                 using ReadyInstallForm form = new(driverPath, tempFiles);
                 form.ShowDialog();
@@ -218,6 +219,19 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 return false;
             }
+        }
+
+        private void ReadyInstallForm_Load(object sender, EventArgs e)
+        {
+            // Set exeLabel
+            string exeName = Path.GetFileName(this.driverPath);
+            exeLabel.Text = exeName;
+        }
+
+        private void ReadyInstallForm_Shown(object sender, EventArgs e)
+        {
+            // Flash and play sound
+            this.Flash(true);
         }
     }
 }

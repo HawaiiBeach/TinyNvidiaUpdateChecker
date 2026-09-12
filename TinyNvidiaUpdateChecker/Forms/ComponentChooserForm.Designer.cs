@@ -140,6 +140,7 @@
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Choose Components";
             Load += ComponentChooserForm_Load;
+            Shown += ComponentChooserForm_Shown;
             ResumeLayout(false);
             PerformLayout();
         }

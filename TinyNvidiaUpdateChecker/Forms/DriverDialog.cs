@@ -128,6 +128,12 @@ namespace TinyNvidiaUpdateChecker
             Close();
         }
 
+        private void DriverDialog_Shown(object sender, EventArgs e)
+        {
+            // Flash and play sound
+            this.Flash(true);
+        }
+
         public enum SelectedBtn
         {
             DLINSTALL,

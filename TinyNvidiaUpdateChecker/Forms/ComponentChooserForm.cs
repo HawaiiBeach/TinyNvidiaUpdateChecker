@@ -54,7 +54,8 @@ namespace TinyNvidiaUpdateChecker.Forms
             }
 
             // Apply last used as default
-            if (configComponents.Length > 0) {
+            if (configComponents.Length > 0)
+            {
                 latestLabel_LinkClicked(latestLabel, new LinkLabelLinkClickedEventArgs(latestLabel.Links[0]));
             }
         }
@@ -157,6 +158,12 @@ namespace TinyNvidiaUpdateChecker.Forms
                 bool isInConfig = configComponents.Contains(component.name);
                 checkedListBox.SetItemChecked(index, isInConfig);
             }
+        }
+
+        private void ComponentChooserForm_Shown(object sender, EventArgs e)
+        {
+            // Flash and play sound
+            this.Flash(true);
         }
     }
 }

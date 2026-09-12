@@ -32,35 +32,40 @@
             folderBtn = new System.Windows.Forms.Button();
             runBtn = new System.Windows.Forms.Button();
             deleteBtn = new System.Windows.Forms.Button();
-            label2 = new System.Windows.Forms.Label();
+            exeLabel = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
+            label2 = new System.Windows.Forms.Label();
+            label4 = new System.Windows.Forms.Label();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(12, 36);
+            label1.Location = new System.Drawing.Point(11, 9);
+            label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(412, 64);
+            label1.Size = new System.Drawing.Size(241, 30);
             label1.TabIndex = 0;
-            label1.Text = "NVIDIA driver is ready to be installed.\r\nWhat do you want to do?";
+            label1.Text = "NVIDIA driver update is ready to be installed.\r\nWhat do you want to do?";
             // 
             // folderBtn
             // 
-            folderBtn.Location = new System.Drawing.Point(12, 418);
+            folderBtn.Location = new System.Drawing.Point(11, 230);
+            folderBtn.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             folderBtn.Name = "folderBtn";
-            folderBtn.Size = new System.Drawing.Size(196, 46);
-            folderBtn.TabIndex = 3;
+            folderBtn.Size = new System.Drawing.Size(106, 22);
+            folderBtn.TabIndex = 7;
             folderBtn.Text = "Show folder";
             folderBtn.UseVisualStyleBackColor = true;
             folderBtn.Click += folderBtn_Click;
             // 
             // runBtn
             // 
-            runBtn.Location = new System.Drawing.Point(12, 205);
+            runBtn.Location = new System.Drawing.Point(11, 130);
+            runBtn.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             runBtn.Name = "runBtn";
-            runBtn.Size = new System.Drawing.Size(196, 46);
-            runBtn.TabIndex = 1;
+            runBtn.Size = new System.Drawing.Size(106, 22);
+            runBtn.TabIndex = 3;
             runBtn.Text = "Run installer";
             runBtn.UseVisualStyleBackColor = true;
             runBtn.Click += runBtn_Click;
@@ -68,48 +73,78 @@
             // deleteBtn
             // 
             deleteBtn.Enabled = false;
-            deleteBtn.Location = new System.Drawing.Point(12, 294);
+            deleteBtn.Location = new System.Drawing.Point(11, 172);
+            deleteBtn.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             deleteBtn.Name = "deleteBtn";
-            deleteBtn.Size = new System.Drawing.Size(196, 87);
-            deleteBtn.TabIndex = 2;
+            deleteBtn.Size = new System.Drawing.Size(106, 41);
+            deleteBtn.TabIndex = 5;
             deleteBtn.Text = "Delete temporary files";
             deleteBtn.UseVisualStyleBackColor = true;
             deleteBtn.Click += deleteBtn_Click;
             // 
-            // label2
+            // exeLabel
             // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(214, 212);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(230, 32);
-            label2.TabIndex = 0;
-            label2.Text = "Run NVIDIA installer";
+            exeLabel.AutoSize = true;
+            exeLabel.Location = new System.Drawing.Point(11, 86);
+            exeLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            exeLabel.Name = "exeLabel";
+            exeLabel.Size = new System.Drawing.Size(64, 15);
+            exeLabel.TabIndex = 2;
+            exeLabel.Text = "{exeName}";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(213, 307);
+            label3.Location = new System.Drawing.Point(120, 178);
+            label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(398, 64);
-            label3.TabIndex = 0;
+            label3.Size = new System.Drawing.Size(196, 30);
+            label3.TabIndex = 6;
             label3.Text = "Delete driver and temporary files.\r\nRun this after finishing driver install.\r\n";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(11, 71);
+            label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(61, 15);
+            label2.TabIndex = 1;
+            label2.Text = "File name:";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(121, 134);
+            label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(113, 15);
+            label4.TabIndex = 4;
+            label4.Text = "Run NVIDIA installer";
             // 
             // ReadyInstallForm
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(623, 476);
-            Controls.Add(label3);
+            ClientSize = new System.Drawing.Size(376, 262);
+            Controls.Add(label4);
             Controls.Add(label2);
+            Controls.Add(label3);
+            Controls.Add(exeLabel);
             Controls.Add(deleteBtn);
             Controls.Add(runBtn);
             Controls.Add(folderBtn);
             Controls.Add(label1);
-            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
+            Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "ReadyInstallForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            Text = "TinyNvidiaUpdateChecker - NVIDIA driver install ready";
+            Text = "NVIDIA driver update ready";
+            Load += ReadyInstallForm_Load;
+            Shown += ReadyInstallForm_Shown;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -120,7 +155,9 @@
         private System.Windows.Forms.Button folderBtn;
         private System.Windows.Forms.Button runBtn;
         private System.Windows.Forms.Button deleteBtn;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label exeLabel;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label4;
     }
 }

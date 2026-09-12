@@ -237,6 +237,7 @@ namespace TinyNvidiaUpdateChecker
             StartPosition = FormStartPosition.CenterScreen;
             Text = "TinyNvidiaUpdateChecker - Update Dialog";
             Load += DriverDialog_Load;
+            Shown += DriverDialog_Shown;
             groupBox1.ResumeLayout(false);
             contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
