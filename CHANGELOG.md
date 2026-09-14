@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Support for multiple drivers, prompt UI now shows all drivers available for the detected GPU, and allows you to choose which one to install
+
 ## [1.26.2] - 2026-09-12
 ### Added
 - Show individual component versions

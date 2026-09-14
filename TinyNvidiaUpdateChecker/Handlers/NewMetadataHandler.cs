@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Ganss.Xss;
@@ -67,96 +66,102 @@ public class NewMetadataHandler
         return (null, 0);
     }
 
-    public static DriverVersion FindLatestDriverForGpu(int gpuIndex, string driverType)
+    public static List<NvidiaDriver> FindDriversForGpu(int gpuIndex, string driverType)
     {
-        DriverVersion latestDriver = null;
+        List<NvidiaDriver> nvidiaDrivers = new();
         Version latestParsedVersion = new(0, 0);
 
-        foreach (var driver in _combinedGpuData.versions)
+        foreach (DriverVersion driver in _combinedGpuData.versions)
         {
+            // If the driver supports our GPU
             if (driver.supports.Contains(gpuIndex))
             {
-                // Does driver type match?
-                if ((driverType == "sd" && driver.type == "Studio") || driverType != "sd")
+                string driverTypeKey = GetDriverTypeKey(driver.type);
+                string driverTypeLabel = driverTypeKey == "grd" ? "Game Ready Driver" : "Studio Driver";
+                string downloadUrl = $"https://international.download.nvidia.com/Windows/{driver.version}/{driver.key}.exe";
+
+                NvidiaDriver driverObj = new()
+                {
+                    title = $"{driver.version} - Type: {driverTypeLabel}",
+                    version = driver.version,
+                    type = driverTypeKey,
+                    downloadUrl = downloadUrl,
+                    fileSizeEst = "unknown" // File size est not available
+                };
+
+                nvidiaDrivers.Add(driverObj);
+
+                // Does driver type match, set latest driver as recommended
+                if ((driverType == "sd" && driverTypeKey == "sd") || driverType != "sd")
                 {
                     if (Version.TryParse(driver.version, out Version currentParsedVersion))
                     {
                         if (currentParsedVersion > latestParsedVersion)
                         {
                             latestParsedVersion = currentParsedVersion;
-                            latestDriver = driver;
                         }
                     }
                 }
             }
         }
-        return latestDriver;
+
+        // Mark latestParsedVersion as recommended
+        NvidiaDriver latestDriver = nvidiaDrivers.Find(x =>
+            x.type == driverType &&
+            Version.TryParse(x.version, out Version v) &&
+            v == latestParsedVersion);
+
+        MainConsole.WriteLine(latestDriver.type);
+        latestDriver.recommended = true;
+
+        // Reverse list, because this metadata is sorted from oldest to newest, and we want the newest first
+        nvidiaDrivers.Reverse();
+
+        return nvidiaDrivers;
     }
 
-    public static (DriverMetadata metadata, string errorCode) GetDriverMetadata(string deviceId, string driverType)
+    private static string GetDriverTypeKey(string driverType)
     {
-        if (!LoadCombinedJsonData()) return (null, "Error parsing GPU metadata json.");
+        switch (driverType.ToLower())
+        {
+            case "desktop":
+                return "grd";
+            case "notebook":
+                return "grd";
+            case "studio":
+                return "sd";
+            default:
+                return "grd";
+        }
+    }
+
+    public static (List<NvidiaDriver> nvidiaDrivers, string errorCode, string releaseNotes) GetDriverMetadata(string deviceId, string driverType)
+    {
+        if (!LoadCombinedJsonData()) return (null, "Error parsing GPU metadata json.", null);
         (GpuDevice matchedGpu, int gpuIndex) = FindGpuDetailsByDeviceId(deviceId);
 
         if (matchedGpu != null)
         {
-            DriverVersion latestDriver = FindLatestDriverForGpu(gpuIndex, driverType);
+            // Finds all compatible drivers for GPU from metadata
+            List<NvidiaDriver> nvidiaDrivers = FindDriversForGpu(gpuIndex, driverType);
 
-            if (latestDriver != null)
+            if (nvidiaDrivers.Count > 0)
             {
-                string downloadUrl = $"https://international.download.nvidia.com/Windows/{latestDriver.version}/{latestDriver.key}.exe";
-                string pdfUrl = $"https://international.download.nvidia.com/Windows/{latestDriver.version}/{latestDriver.version}-win11-win10-release-notes.pdf";
+                // Release notes
+                string releaseNotes = RetrieveReleaseNotes();
 
-                // Query release date and file size
-                using (var request = new HttpRequestMessage(HttpMethod.Head, downloadUrl))
-                {
-                    using var response = MainConsole.httpClient.Send(request);
-                    response.EnsureSuccessStatusCode();
-
-                    // File size
-                    long fileSize = response.Content.Headers.ContentLength.Value;
-
-                    // Release date
-                    DateTimeOffset? releaseDateOffset = response.Content.Headers.LastModified;
-                    DateTime releaseDate = (DateTime)(releaseDateOffset?.LocalDateTime);
-
-                    // Test if PDF url is OK
-                    if (!IsUrlOk(pdfUrl)) pdfUrl = null;
-
-                    // Release notes
-                    string releaseNotes = RetrieveReleaseNotes();
-
-                    return (new DriverMetadata(latestDriver.key, latestDriver.version, fileSize, latestDriver.type, downloadUrl, pdfUrl, releaseNotes, releaseDate), null);
-                }
+                // Return list
+                return (nvidiaDrivers, null, releaseNotes);
             }
             else
             {
-                // TODO implement popup, and ask to revert to GRD
                 string error = "No compatible driver was found for your GPU.";
-                if (driverType == "sd")
-                {
-                    error += "\nYou have opted to only recieve Studio drivers. Perhaps your GPU has no available Studio drivers.";
-                }
-                return (null, error);
+                return (null, error, null);
             }
         }
         else
         {
-            return (null, $"Your GPU is not supported by this experimental repo. Your device ID: {deviceId}");
-        }
-    }
-
-    private static bool IsUrlOk(string url)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Head, url);
-            using var response = MainConsole.httpClient.Send(request);
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
+            return (null, $"Your GPU is not supported by this experimental repo. Your device ID: {deviceId}", null);
         }
     }
 

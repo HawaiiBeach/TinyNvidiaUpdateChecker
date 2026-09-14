@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
@@ -9,57 +10,62 @@ namespace TinyNvidiaUpdateChecker
 {
     public partial class DriverDialog : Form
     {
-        public static SelectedBtn selectedBtn;
-        static DriverMetadata metadata;
+        static SelectedBtn selectedBtn;
+        static NvidiaDriver selectedDriver;
+        List<NvidiaDriver> nvidiaDrivers;
+        string releaseNotes;
         float notesScale;
 
-        public DriverDialog()
+        public DriverDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
             InitializeComponent();
+            this.nvidiaDrivers = nvidiaDrivers;
+            this.releaseNotes = releaseNotes;
         }
 
-        public static void ShowGUI(DriverMetadata metadata)
+        public static (SelectedBtn selectedBtn, NvidiaDriver selectedDriver) ShowGUI(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
-            DriverDialog.metadata = metadata;
-            using DriverDialog form = new();
+            using DriverDialog form = new(nvidiaDrivers, releaseNotes);
             form.ShowDialog();
+
+            return (selectedBtn, selectedDriver);
         }
 
         private void DriverDialog_Load(object sender, EventArgs e)
         {
-            webBrowser1.DocumentText = metadata.releaseNotes;
+            webBrowser1.DocumentText = releaseNotes;
             notesScale = this.CreateGraphics().DpiX;
 
-            var dateDiff = (DateTime.Now - metadata.releaseDate).Days; // how many days between the two dates
-            string daysAgoFromRelease;
-
-            if (dateDiff == 1)
+            // Add each driver and assign uiIdx
+            foreach (NvidiaDriver driver in this.nvidiaDrivers)
             {
-                daysAgoFromRelease = $"{dateDiff} day ago";
-            }
-            else if (dateDiff < 1)
-            {
-                daysAgoFromRelease = "today"; // we only have the date and not time :/
-            }
-            else
-            {
-                daysAgoFromRelease = $"{dateDiff} days ago";
+                int index = versionBox.Items.Add(driver.title);
+                driver.uiIdx = index;
             }
 
-            releasedLabel.Text += daysAgoFromRelease;
-            toolTip1.SetToolTip(releasedLabel, metadata.releaseDate.ToShortDateString());
+            // Assign default selected driver
+            versionBox.SelectedIndex = 0;
+            selectedDriver = nvidiaDrivers.Find(x => x.recommended);
 
-            versionLabel.Text += MainConsole.OnlineGPUVersion + $" (you're on {MainConsole.OfflineGPUVersion})";
-            sizeLabel.Text += Math.Round((metadata.fileSize / 1024f) / 1024f) + " MiB";
-            typeLabel.Text += metadata.platform;
-            NotesBtn.Enabled = (metadata.pdfUrl != null);
+            // Trigger SelectedIndexChanged event to update labels with the default driver information
+            VersionBoxChangedIndex();
         }
 
         private void NotesBtn_Click(object sender, EventArgs e)
         {
+            string pdfUrl = null;
+
+            if (selectedDriver.type == "grd")
+            {
+                pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win11-win10-release-notes.pdf";
+            } else
+            {
+                pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nsd-release-notes.pdf";
+            }
+
             try
             {
-                Process.Start(new ProcessStartInfo(metadata.pdfUrl) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(pdfUrl) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
@@ -133,6 +139,44 @@ namespace TinyNvidiaUpdateChecker
         {
             // Flash and play sound
             this.Flash(true);
+        }
+
+        private void versionBox_SelectedIndexChanged(object sender, EventArgs e) { VersionBoxChangedIndex(); }
+
+        private void VersionBoxChangedIndex()
+        {
+            // Find selected driver based on uiIdx
+            selectedDriver = nvidiaDrivers.Find(x => x.uiIdx == versionBox.SelectedIndex);
+
+            // Date
+            int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates
+            string daysAgoFromRelease;
+
+            if (dateDiff == 1)
+            {
+                daysAgoFromRelease = $"{dateDiff} day ago";
+            }
+            else if (dateDiff < 1)
+            {
+                daysAgoFromRelease = "today";
+            }
+            else
+            {
+                daysAgoFromRelease = $"{dateDiff} days ago";
+            }
+
+            if (selectedDriver.releaseDate == DateTime.MinValue)
+            {
+                daysAgoFromRelease = "unknown";
+            }
+
+            toolTip1.SetToolTip(releasedLabel, selectedDriver.releaseDate.ToShortDateString());
+            string driverTypeLabel = selectedDriver.type == "grd" ? "Game Ready Driver" : "Studio Driver";
+
+            releasedLabel.Text = $"Released: {daysAgoFromRelease}";
+            versionLabel.Text = $"Version: {selectedDriver.version} (you're on {MainConsole.OfflineGPUVersion})";
+            sizeLabel.Text = $"Size: {selectedDriver.fileSizeEst}";
+            typeLabel.Text = $"Type: {driverTypeLabel}";
         }
 
         public enum SelectedBtn
