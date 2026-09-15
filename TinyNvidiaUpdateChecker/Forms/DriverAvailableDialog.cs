@@ -57,10 +57,15 @@ namespace TinyNvidiaUpdateChecker
         {
             string pdfUrl = null;
 
-            if (selectedDriver.type == "grd")
+            if (selectedDriver.downloadUrl.Contains("Quadro_Certified"))
+            {
+                pdfUrl = $"https://international.download.nvidia.com/Windows/Quadro_Certified/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nvidia-rtx-quadro-release-notes.pdf";
+            }
+            else if (selectedDriver.type == "grd")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win11-win10-release-notes.pdf";
-            } else
+            }
+            else if (selectedDriver.type == "sd")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nsd-release-notes.pdf";
             }
