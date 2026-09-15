@@ -44,11 +44,12 @@ namespace TinyNvidiaUpdateChecker
             IgnoreBtn = new Button();
             webBrowser1 = new WebBrowser();
             toolTip1 = new ToolTip(components);
+            driverLabel = new Label();
             configButton = new Button();
-            contextMenuStrip1 = new ContextMenuStrip(components);
+            versionBox = new ComboBox();
             installItem = new ToolStripMenuItem();
             keepCheckBox = new ToolStripMenuItem();
-            versionBox = new ComboBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
             groupBox1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
@@ -56,23 +57,23 @@ namespace TinyNvidiaUpdateChecker
             // DownloadInstallButton
             // 
             DownloadInstallButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            DownloadInstallButton.Location = new System.Drawing.Point(33, 256);
+            DownloadInstallButton.Location = new System.Drawing.Point(9, 265);
             DownloadInstallButton.Name = "DownloadInstallButton";
-            DownloadInstallButton.Size = new System.Drawing.Size(95, 52);
+            DownloadInstallButton.Size = new System.Drawing.Size(92, 45);
             DownloadInstallButton.TabIndex = 0;
             DownloadInstallButton.Text = "Install Now";
-            toolTip1.SetToolTip(DownloadInstallButton, resources.GetString("DownloadInstallButton.ToolTip"));
+            toolTip1.SetToolTip(DownloadInstallButton, "Download and install the driver now.\r\nThe driver will silently download (and perform minimal install, if enabled) in the background.\r\nOnce installation is ready, you will be notified.");
             DownloadInstallButton.UseVisualStyleBackColor = true;
             DownloadInstallButton.Click += DownloadInstallButton_Click;
             // 
             // DownloadBtn
             // 
             DownloadBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            DownloadBtn.Location = new System.Drawing.Point(134, 256);
+            DownloadBtn.Location = new System.Drawing.Point(109, 265);
             DownloadBtn.Name = "DownloadBtn";
-            DownloadBtn.Size = new System.Drawing.Size(95, 52);
+            DownloadBtn.Size = new System.Drawing.Size(92, 45);
             DownloadBtn.TabIndex = 1;
-            DownloadBtn.Text = "Download Only";
+            DownloadBtn.Text = "Download";
             toolTip1.SetToolTip(DownloadBtn, resources.GetString("DownloadBtn.ToolTip"));
             DownloadBtn.UseVisualStyleBackColor = true;
             DownloadBtn.Click += DownloadBtn_Click;
@@ -80,12 +81,12 @@ namespace TinyNvidiaUpdateChecker
             // NotesBtn
             // 
             NotesBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            NotesBtn.Location = new System.Drawing.Point(234, 256);
+            NotesBtn.Location = new System.Drawing.Point(310, 228);
             NotesBtn.Name = "NotesBtn";
-            NotesBtn.Size = new System.Drawing.Size(95, 52);
+            NotesBtn.Size = new System.Drawing.Size(232, 31);
             NotesBtn.TabIndex = 2;
-            NotesBtn.Text = "View Release Notes";
-            toolTip1.SetToolTip(NotesBtn, "View the full pdf release notes, which contains:\r\n- what's new\r\n- what's fixed\r\n- open issues\r\n\r\nand more!");
+            NotesBtn.Text = "View Release Notes PDF";
+            toolTip1.SetToolTip(NotesBtn, "View the full PDF release notes, which contains:\r\n- What's new\r\n- What's fixed\r\n- Open issues");
             NotesBtn.UseVisualStyleBackColor = true;
             NotesBtn.Click += NotesBtn_Click;
             // 
@@ -105,9 +106,9 @@ namespace TinyNvidiaUpdateChecker
             groupBox1.Controls.Add(sizeLabel);
             groupBox1.Controls.Add(releasedLabel);
             groupBox1.Controls.Add(versionLabel);
-            groupBox1.Location = new System.Drawing.Point(278, 46);
+            groupBox1.Location = new System.Drawing.Point(310, 20);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(264, 134);
+            groupBox1.Size = new System.Drawing.Size(232, 134);
             groupBox1.TabIndex = 6;
             groupBox1.TabStop = false;
             groupBox1.Text = "Driver Information";
@@ -116,45 +117,45 @@ namespace TinyNvidiaUpdateChecker
             // 
             typeLabel.Location = new System.Drawing.Point(5, 100);
             typeLabel.Name = "typeLabel";
-            typeLabel.Size = new System.Drawing.Size(259, 28);
+            typeLabel.Size = new System.Drawing.Size(226, 28);
             typeLabel.TabIndex = 7;
             typeLabel.Text = "Type: ";
-            typeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            typeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // sizeLabel
             // 
             sizeLabel.Location = new System.Drawing.Point(5, 72);
             sizeLabel.Name = "sizeLabel";
-            sizeLabel.Size = new System.Drawing.Size(259, 28);
+            sizeLabel.Size = new System.Drawing.Size(226, 28);
             sizeLabel.TabIndex = 6;
             sizeLabel.Text = "Size: ";
-            sizeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            sizeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // releasedLabel
             // 
             releasedLabel.Location = new System.Drawing.Point(5, 44);
             releasedLabel.Name = "releasedLabel";
-            releasedLabel.Size = new System.Drawing.Size(259, 28);
+            releasedLabel.Size = new System.Drawing.Size(226, 28);
             releasedLabel.TabIndex = 5;
             releasedLabel.Text = "Released: ";
-            releasedLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            releasedLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // versionLabel
             // 
             versionLabel.Location = new System.Drawing.Point(5, 16);
             versionLabel.Name = "versionLabel";
-            versionLabel.Size = new System.Drawing.Size(259, 28);
+            versionLabel.Size = new System.Drawing.Size(226, 28);
             versionLabel.TabIndex = 5;
             versionLabel.Text = "Version: ";
-            versionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            versionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             toolTip1.SetToolTip(versionLabel, "The version of the graphics drivers");
             // 
             // IgnoreBtn
             // 
             IgnoreBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            IgnoreBtn.Location = new System.Drawing.Point(335, 256);
+            IgnoreBtn.Location = new System.Drawing.Point(209, 265);
             IgnoreBtn.Name = "IgnoreBtn";
-            IgnoreBtn.Size = new System.Drawing.Size(95, 52);
+            IgnoreBtn.Size = new System.Drawing.Size(92, 45);
             IgnoreBtn.TabIndex = 3;
             IgnoreBtn.Text = "Ignore";
             IgnoreBtn.UseVisualStyleBackColor = true;
@@ -165,39 +166,51 @@ namespace TinyNvidiaUpdateChecker
             webBrowser1.AllowNavigation = false;
             webBrowser1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             webBrowser1.IsWebBrowserContextMenuEnabled = false;
-            webBrowser1.Location = new System.Drawing.Point(10, 27);
+            webBrowser1.Location = new System.Drawing.Point(10, 29);
             webBrowser1.MinimumSize = new System.Drawing.Size(18, 19);
             webBrowser1.Name = "webBrowser1";
             webBrowser1.ScriptErrorsSuppressed = true;
-            webBrowser1.Size = new System.Drawing.Size(262, 223);
+            webBrowser1.Size = new System.Drawing.Size(289, 230);
             webBrowser1.TabIndex = 4;
             webBrowser1.WebBrowserShortcutsEnabled = false;
             webBrowser1.DocumentCompleted += webBrowser1_DocumentCompleted;
             // 
+            // driverLabel
+            // 
+            driverLabel.AutoSize = true;
+            driverLabel.Location = new System.Drawing.Point(311, 262);
+            driverLabel.Name = "driverLabel";
+            driverLabel.Size = new System.Drawing.Size(135, 15);
+            driverLabel.TabIndex = 9;
+            driverLabel.Text = "Choose driver (optional)";
+            toolTip1.SetToolTip(driverLabel, "You can choose to install an older driver.\r\nIf you are not sure, do not change this setting.");
+            // 
             // configButton
             // 
             configButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            configButton.Location = new System.Drawing.Point(511, 12);
+            configButton.Location = new System.Drawing.Point(310, 174);
             configButton.Name = "configButton";
-            configButton.Size = new System.Drawing.Size(31, 32);
+            configButton.Size = new System.Drawing.Size(232, 31);
             configButton.TabIndex = 7;
-            configButton.Text = "⚙";
-            toolTip1.SetToolTip(configButton, "Open configuration");
+            configButton.Text = "Open configuration menu";
             configButton.UseVisualStyleBackColor = true;
             configButton.Click += configButton_Click;
             // 
-            // contextMenuStrip1
+            // versionBox
             // 
-            contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { installItem, keepCheckBox });
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(163, 48);
-            contextMenuStrip1.Closing += contextMenuStrip1_Closing;
+            versionBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            versionBox.FlatStyle = FlatStyle.Popup;
+            versionBox.FormattingEnabled = true;
+            versionBox.Location = new System.Drawing.Point(311, 283);
+            versionBox.Name = "versionBox";
+            versionBox.Size = new System.Drawing.Size(231, 23);
+            versionBox.TabIndex = 8;
+            versionBox.SelectedIndexChanged += versionBox_SelectedIndexChanged;
             // 
             // installItem
             // 
             installItem.Name = "installItem";
-            installItem.Size = new System.Drawing.Size(162, 22);
+            installItem.Size = new System.Drawing.Size(200, 22);
             installItem.Text = "Install Now >";
             installItem.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             installItem.Click += installItem_Click;
@@ -206,25 +219,23 @@ namespace TinyNvidiaUpdateChecker
             // 
             keepCheckBox.CheckOnClick = true;
             keepCheckBox.Name = "keepCheckBox";
-            keepCheckBox.Size = new System.Drawing.Size(162, 22);
-            keepCheckBox.Text = "Keep driver files?";
-            keepCheckBox.ToolTipText = "Choose custom download location and keep driver files";
+            keepCheckBox.Size = new System.Drawing.Size(200, 22);
+            keepCheckBox.Text = "Select download folder?";
             // 
-            // versionBox
+            // contextMenuStrip1
             // 
-            versionBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            versionBox.FormattingEnabled = true;
-            versionBox.Location = new System.Drawing.Point(278, 186);
-            versionBox.Name = "versionBox";
-            versionBox.Size = new System.Drawing.Size(264, 23);
-            versionBox.TabIndex = 8;
-            versionBox.SelectedIndexChanged += versionBox_SelectedIndexChanged;
+            contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { installItem, keepCheckBox });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new System.Drawing.Size(201, 48);
+            contextMenuStrip1.Closing += contextMenuStrip1_Closing;
             // 
             // DriverAvailableDialog
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(554, 318);
+            Controls.Add(driverLabel);
             Controls.Add(versionBox);
             Controls.Add(configButton);
             Controls.Add(webBrowser1);
@@ -259,11 +270,12 @@ namespace TinyNvidiaUpdateChecker
         private System.Windows.Forms.WebBrowser webBrowser1;
         private ToolTip toolTip1;
         private Label sizeLabel;
-        private ContextMenuStrip contextMenuStrip1;
-        private ToolStripMenuItem installItem;
-        private ToolStripMenuItem keepCheckBox;
         private Button configButton;
         private Label typeLabel;
         private ComboBox versionBox;
+        private Label driverLabel;
+        private ToolStripMenuItem installItem;
+        private ToolStripMenuItem keepCheckBox;
+        private ContextMenuStrip contextMenuStrip1;
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using TinyNvidiaUpdateChecker.Forms;
@@ -19,6 +21,7 @@ namespace TinyNvidiaUpdateChecker
         public DriverAvailableDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
             InitializeComponent();
+            contextMenuStrip1.Renderer = new CleanMenuRenderer();
             this.nvidiaDrivers = nvidiaDrivers;
             this.releaseNotes = releaseNotes;
         }
@@ -43,7 +46,7 @@ namespace TinyNvidiaUpdateChecker
                 driver.uiIdx = index;
             }
 
-            // Make sure selected index (default choice) is recommended driver
+            // Set recommended driver as default choice
             selectedDriver = nvidiaDrivers.Find(x => x.recommended);
 
             // This will trigger SelectedIndexChanged event
@@ -113,7 +116,7 @@ namespace TinyNvidiaUpdateChecker
                     .OfType<ToolStripMenuItem>()
                     .FirstOrDefault(i => i.Bounds.Contains(contextMenuStrip1.PointToClient(Cursor.Position)));
 
-                if (hovered != null && hovered.Text == "Keep driver files?")
+                if (hovered != null && hovered.Text == "Select download folder?")
                 {
                     e.Cancel = true;
                 }
@@ -198,5 +201,58 @@ namespace TinyNvidiaUpdateChecker
             DLEXTRACT,
             IGNORE
         }
+    }
+
+public class CleanMenuRenderer : ToolStripProfessionalRenderer
+    {
+        public CleanMenuRenderer() : base(new CleanColors()) { }
+
+        protected override void OnRenderImageMargin(ToolStripRenderEventArgs e) { }
+
+        protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Scale checkbox size dynamically based on item height (~55%)
+            int itemHeight = e.Item.Height;
+            int boxSize = (int)(itemHeight * 0.55f);
+
+            // Ensure even dimension for crisp line rendering
+            if (boxSize % 2 != 0) boxSize--;
+
+            // Center vertically and apply proportional left padding
+            int x = (int)(itemHeight * 0.25f);
+            int y = (itemHeight - boxSize) / 2;
+
+            Rectangle boxRect = new Rectangle(x, y, boxSize, boxSize);
+
+            // Render checkbox background
+            using (var brush = new SolidBrush(Color.FromArgb(0, 120, 215)))
+            {
+                e.Graphics.FillRectangle(brush, boxRect);
+            }
+
+            // Render dynamically scaled checkmark
+            float penWidth = Math.Max(1.5f, boxSize / 8.0f);
+            using (var pen = new Pen(Color.White, penWidth))
+            {
+                pen.StartCap = LineCap.Round;
+                pen.EndCap = LineCap.Round;
+
+                PointF p1 = new PointF(boxRect.Left + boxSize * 0.22f, boxRect.Top + boxSize * 0.52f);
+                PointF p2 = new PointF(boxRect.Left + boxSize * 0.44f, boxRect.Top + boxSize * 0.74f);
+                PointF p3 = new PointF(boxRect.Left + boxSize * 0.80f, boxRect.Top + boxSize * 0.26f);
+
+                e.Graphics.DrawLines(pen, new[] { p1, p2, p3 });
+            }
+        }
+    }
+
+    public class CleanColors : ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground => Color.White;
+        public override Color MenuBorder => Color.FromArgb(204, 204, 204);
+        public override Color MenuItemSelected => Color.FromArgb(235, 235, 235);
+        public override Color MenuItemBorder => Color.Transparent;
     }
 }

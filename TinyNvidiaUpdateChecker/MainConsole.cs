@@ -197,6 +197,7 @@ namespace TinyNvidiaUpdateChecker
 
             // Get the latest driver (recommended)
             NvidiaDriver latestDriver = nvidiaDrivers.Find(x => x.recommended);
+            latestDriver.title = $"[Latest] {latestDriver.title}";
 
             OfflineGPUVersion = gpu.version;
             OnlineGPUVersion = latestDriver.version;

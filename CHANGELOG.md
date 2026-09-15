@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Parallel segmented downloader with 1MB stream buffers, fixes networking issues (Author: @TanoINA)
 
 ### Changed
+- Improved driver available menu
 - Prefer notebook driver packages for mobile GPUs in multi-driver view (Author: @TanoINA)
 - Improved GPU detection with bounded WMI timeouts and safe fallback (Author: @TanoINA)
 
