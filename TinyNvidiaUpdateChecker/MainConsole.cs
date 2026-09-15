@@ -522,9 +522,9 @@ namespace TinyNvidiaUpdateChecker
         /// </summary>
         private static void PromptAvailableUpdate(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
-            (DriverDialog.SelectedBtn selectedBtn, NvidiaDriver selectedVersion) = DriverDialog.ShowGUI(nvidiaDrivers, releaseNotes);
+            (DriverAvailableDialog.SelectedBtn selectedBtn, NvidiaDriver selectedVersion) = DriverAvailableDialog.ShowGUI(nvidiaDrivers, releaseNotes);
 
-            if (selectedBtn == DriverDialog.SelectedBtn.DLEXTRACT) {
+            if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLEXTRACT) {
                 // download and save (and extract)
 
                 if (!PowerHandler.ConfirmHeavyOperation("downloading a driver"))
@@ -599,10 +599,10 @@ namespace TinyNvidiaUpdateChecker
                 if (ConfigurationHandler.ReadSettingBool("Minimal install")) {
                     MakeInstaller(false, savePath, driverFileName);
                 }
-            } else if (selectedBtn == DriverDialog.SelectedBtn.DLINSTALL) {
+            } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALL) {
                 DownloadDriverQuiet(selectedVersion, confirmDL);
                 
-            } else if (selectedBtn == DriverDialog.SelectedBtn.DLINSTALLCUSTOM) {
+            } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALLCUSTOM) {
                 string title = "Choose download location";
 
                 if (ConfigurationHandler.ReadSettingBool("Minimal install"))

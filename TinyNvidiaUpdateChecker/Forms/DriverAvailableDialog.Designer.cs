@@ -2,7 +2,7 @@
 
 namespace TinyNvidiaUpdateChecker
 {
-    partial class DriverDialog
+    partial class DriverAvailableDialog
     {
         /// <summary>
         /// Required designer variable.
@@ -31,7 +31,7 @@ namespace TinyNvidiaUpdateChecker
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DriverDialog));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DriverAvailableDialog));
             DownloadInstallButton = new Button();
             DownloadBtn = new Button();
             NotesBtn = new Button();
@@ -220,7 +220,7 @@ namespace TinyNvidiaUpdateChecker
             versionBox.TabIndex = 8;
             versionBox.SelectedIndexChanged += versionBox_SelectedIndexChanged;
             // 
-            // DriverDialog
+            // DriverAvailableDialog
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -236,7 +236,7 @@ namespace TinyNvidiaUpdateChecker
             Controls.Add(DownloadInstallButton);
             FormBorderStyle = FormBorderStyle.None;
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-            Name = "DriverDialog";
+            Name = "DriverAvailableDialog";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "TinyNvidiaUpdateChecker - Update Dialog";
             Load += DriverDialog_Load;

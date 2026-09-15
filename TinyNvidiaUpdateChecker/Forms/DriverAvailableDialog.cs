@@ -8,7 +8,7 @@ using TinyNvidiaUpdateChecker.Handlers;
 
 namespace TinyNvidiaUpdateChecker
 {
-    public partial class DriverDialog : Form
+    public partial class DriverAvailableDialog : Form
     {
         static SelectedBtn selectedBtn;
         static NvidiaDriver selectedDriver;
@@ -16,7 +16,7 @@ namespace TinyNvidiaUpdateChecker
         string releaseNotes;
         float notesScale;
 
-        public DriverDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
+        public DriverAvailableDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
             InitializeComponent();
             this.nvidiaDrivers = nvidiaDrivers;
@@ -25,7 +25,7 @@ namespace TinyNvidiaUpdateChecker
 
         public static (SelectedBtn selectedBtn, NvidiaDriver selectedDriver) ShowGUI(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
-            using DriverDialog form = new(nvidiaDrivers, releaseNotes);
+            using DriverAvailableDialog form = new(nvidiaDrivers, releaseNotes);
             form.ShowDialog();
 
             return (selectedBtn, selectedDriver);
