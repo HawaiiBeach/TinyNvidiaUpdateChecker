@@ -63,7 +63,6 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 latestLabel_LinkClicked(latestLabel, new LinkLabelLinkClickedEventArgs(latestLabel.Links[0]));
             }
-
         }
 
         private void checkedListBox_SelectedValueChanged(object sender, EventArgs e)
