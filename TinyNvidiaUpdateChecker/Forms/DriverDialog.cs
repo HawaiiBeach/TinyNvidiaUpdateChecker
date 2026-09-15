@@ -147,6 +147,14 @@ namespace TinyNvidiaUpdateChecker
             // Find selected driver based on uiIdx
             selectedDriver = nvidiaDrivers.Find(x => x.uiIdx == versionBox.SelectedIndex);
 
+            // If selected driver is missing release date & file size (caused by experimental metadata)
+            if (selectedDriver.releaseDate == DateTime.MinValue)
+            {
+                (long fileSize, selectedDriver.releaseDate) = MainConsole.GetDriverMetadataFromNvidia(selectedDriver.downloadUrl);
+                double mibFileSize = Math.Round((fileSize / 1024f) / 1024f);
+                selectedDriver.fileSizeEst = mibFileSize + " MiB";
+            }
+
             // Date
             int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates
             string daysAgoFromRelease;
@@ -159,9 +167,14 @@ namespace TinyNvidiaUpdateChecker
             {
                 daysAgoFromRelease = "today";
             }
-            else
+            else if (dateDiff < 30)
             {
                 daysAgoFromRelease = $"{dateDiff} days ago";
+            }
+            else
+            {
+                int months = dateDiff / 30;
+                daysAgoFromRelease = months == 1 ? "1 month ago" : $"{months} months ago";
             }
 
             if (selectedDriver.releaseDate == DateTime.MinValue)

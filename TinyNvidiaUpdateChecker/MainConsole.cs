@@ -558,7 +558,7 @@ namespace TinyNvidiaUpdateChecker
                     string finalPath = savePath + driverFileName;
 
                     // Get file size from NVIDIA server
-                    long fileSize = GetDriverFileSizeFromNvidia(selectedVersion.downloadUrl);
+                    (long fileSize,_) = GetDriverMetadataFromNvidia(selectedVersion.downloadUrl);
 
                     if (File.Exists(finalPath) && !DoesDriverFileSizeMatch(finalPath, fileSize)) {
                         File.Delete(finalPath);
@@ -650,7 +650,7 @@ namespace TinyNvidiaUpdateChecker
             Directory.CreateDirectory(FULL_PATH_DIRECTORY);
 
             // Get file size from NVIDIA server
-            long fileSize = GetDriverFileSizeFromNvidia(nvidiaDriver.downloadUrl);
+            (long fileSize,_) = GetDriverMetadataFromNvidia(nvidiaDriver.downloadUrl);
 
             if (File.Exists(FULL_PATH_DRIVER) && !DoesDriverFileSizeMatch(FULL_PATH_DRIVER, fileSize)) {
                 File.Delete(savePath + driverFileName);
@@ -953,7 +953,7 @@ namespace TinyNvidiaUpdateChecker
             return new FileInfo(absoluteFilePath).Length == fileSize;
         }
 
-        public static long GetDriverFileSizeFromNvidia(string downloadUrl)
+        public static (long fileSize, DateTime releaseDate) GetDriverMetadataFromNvidia(string downloadUrl)
         {
             // Query release date and file size
             using (var request = new HttpRequestMessage(HttpMethod.Head, downloadUrl))
@@ -965,10 +965,10 @@ namespace TinyNvidiaUpdateChecker
                 long fileSize = response.Content.Headers.ContentLength.Value;
 
                 // Release date
-                //DateTimeOffset? releaseDateOffset = response.Content.Headers.LastModified;
-                //DateTime releaseDate = (DateTime)(releaseDateOffset?.LocalDateTime);
+                DateTimeOffset? releaseDateOffset = response.Content.Headers.LastModified;
+                DateTime releaseDate = (DateTime)(releaseDateOffset?.LocalDateTime);
 
-                return fileSize;
+                return (fileSize, releaseDate);
             }
         }
 
