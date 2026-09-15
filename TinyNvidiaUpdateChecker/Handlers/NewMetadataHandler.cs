@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Ganss.Xss;
@@ -22,6 +23,8 @@ public class DriverVersion
     public List<string> os { get; set; }
     public string bit { get; set; }
     public string type { get; set; }
+    public string variant { get; set; }
+    public string notebook { get; set; }
     public int dch { get; set; }
     public List<int> supports { get; set; }
 }
@@ -55,26 +58,50 @@ public class NewMetadataHandler
 
     public static (GpuDevice matchedGpu, int deviceKey) FindGpuDetailsByDeviceId(string deviceId)
     {
+        if (_combinedGpuData?.devices == null || string.IsNullOrWhiteSpace(deviceId)) return (null, 0);
+
         foreach (KeyValuePair<string, GpuDevice> entry in _combinedGpuData.devices)
         {
             GpuDevice device = entry.Value;
-            if (device.id.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+            if (device?.id != null && device.id.Equals(deviceId, StringComparison.OrdinalIgnoreCase) && int.TryParse(entry.Key, out int key))
             {
-                return (device, int.Parse(entry.Key));
+                return (device, key);
             }
         }
         return (null, 0);
     }
 
+    private static bool IsMobileGpuIndex(int gpuIndex)
+    {
+        return _combinedGpuData?.devices?.TryGetValue(gpuIndex.ToString(), out GpuDevice device) == true
+            && (device.name?.Contains("Laptop", StringComparison.OrdinalIgnoreCase) == true
+                || device.name?.Contains("Notebook", StringComparison.OrdinalIgnoreCase) == true
+                || device.name?.Contains("Max-Q", StringComparison.OrdinalIgnoreCase) == true);
+    }
+
+    private static bool IsNotebookVariant(DriverVersion driver)
+    {
+        return string.Equals(driver.notebook, "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(driver.type, "Notebook", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(driver.variant, "notebook", StringComparison.OrdinalIgnoreCase)
+            || driver.key?.Contains("notebook", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
     public static List<NvidiaDriver> FindDriversForGpu(int gpuIndex, string driverType)
     {
         List<NvidiaDriver> nvidiaDrivers = new();
+        NvidiaDriver latestDriver = null;
+        NvidiaDriver latestNotebookDriver = null;
         Version latestParsedVersion = new(0, 0);
+        Version latestNotebookVersion = new(0, 0);
+        bool preferNotebook = driverType != "sd" && IsMobileGpuIndex(gpuIndex);
+
+        if (_combinedGpuData?.versions == null) return nvidiaDrivers;
 
         foreach (DriverVersion driver in _combinedGpuData.versions)
         {
             // If the driver supports our GPU
-            if (driver.supports.Contains(gpuIndex))
+            if (driver?.supports?.Contains(gpuIndex) == true)
             {
                 string driverTypeKey = GetDriverTypeKey(driver.type);
                 string driverTypeLabel = driverTypeKey == "grd" ? "Game Ready Driver" : "Studio Driver";
@@ -91,28 +118,30 @@ public class NewMetadataHandler
 
                 nvidiaDrivers.Add(driverObj);
 
-                // Does driver type match, set latest driver as recommended
-                if ((driverType == "sd" && driverTypeKey == "sd") || driverType != "sd")
+                // Compares the most up to date version, and system compatible (GRD/SD/Notebook), then sets it as recommended
+                if (driverTypeKey == driverType && Version.TryParse(driver.version, out Version currentParsedVersion))
                 {
-                    if (Version.TryParse(driver.version, out Version currentParsedVersion))
+
+                    // If we prefer notebook drivers and this is a notebook variant
+                    if (preferNotebook && IsNotebookVariant(driver) && currentParsedVersion > latestNotebookVersion)
                     {
-                        if (currentParsedVersion > latestParsedVersion)
-                        {
-                            latestParsedVersion = currentParsedVersion;
-                        }
+                        latestNotebookVersion = currentParsedVersion;
+                        latestNotebookDriver = driverObj;
+                    }
+
+                    // Regular SD/GRD driver
+                    if (currentParsedVersion > latestParsedVersion)
+                    {
+                        latestParsedVersion = currentParsedVersion;
+                        latestDriver = driverObj;
                     }
                 }
             }
         }
 
-        // Mark latestParsedVersion as recommended
-        NvidiaDriver latestDriver = nvidiaDrivers.Find(x =>
-            x.type == driverType &&
-            Version.TryParse(x.version, out Version v) &&
-            v == latestParsedVersion);
-
-        MainConsole.WriteLine(latestDriver.type);
-        latestDriver.recommended = true;
+        // Mark the latest matching driver found as recommended
+        NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver ?? nvidiaDrivers.LastOrDefault();
+        if (recommendedDriver != null) recommendedDriver.recommended = true;
 
         // Reverse list, because this metadata is sorted from oldest to newest, and we want the newest first
         nvidiaDrivers.Reverse();
@@ -122,7 +151,7 @@ public class NewMetadataHandler
 
     private static string GetDriverTypeKey(string driverType)
     {
-        switch (driverType.ToLower())
+        switch (driverType?.ToLower())
         {
             case "desktop":
                 return "grd";

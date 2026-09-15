@@ -261,10 +261,8 @@ namespace TinyNvidiaUpdateChecker
         private ToolTip toolTip1;
         private Label sizeLabel;
         private ContextMenuStrip contextMenuStrip1;
-        private ToolStripMenuItem customSaveLocationItem;
         private ToolStripMenuItem installItem;
         private ToolStripMenuItem keepCheckBox;
-        private ToolStripTextBox toolStripTextBox1;
         private Button configButton;
         private Label typeLabel;
         private ComboBox versionBox;

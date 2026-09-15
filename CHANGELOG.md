@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Support for multiple drivers, prompt UI now shows all drivers available for the detected GPU, and allows you to choose which one to install
+- Battery check before heavy operations (Author: @TanoINA)
+- Keep NVPCF and PPC components by default for notebook users in minimal installer (Author: @TanoINA)
+
+### Fixed
+- `--version` exit and guard Console.ReadKey against redirected shells (Author: @TanoINA)
+- Parallel segmented downloader with 1MB stream buffers, fixes networking issues (Author: @TanoINA)
+
+### Changed
+- Prefer notebook driver packages for mobile GPUs in multi-driver view (Author: @TanoINA)
+- Improved GPU detection with bounded WMI timeouts and safe fallback (Author: @TanoINA)
 
 ## [1.26.2] - 2026-09-12
 ### Added
