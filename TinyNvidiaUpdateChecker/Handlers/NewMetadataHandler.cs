@@ -118,15 +118,18 @@ public class NewMetadataHandler
 
                 nvidiaDrivers.Add(driverObj);
 
-                // Does driver type match, set latest driver as recommended
+                // Compares the most up to date version, and system compatible (GRD/SD/Notebook), then sets it as recommended
                 if (driverTypeKey == driverType && Version.TryParse(driver.version, out Version currentParsedVersion))
                 {
+
+                    // If we prefer notebook drivers and this is a notebook variant
                     if (preferNotebook && IsNotebookVariant(driver) && currentParsedVersion > latestNotebookVersion)
                     {
                         latestNotebookVersion = currentParsedVersion;
                         latestNotebookDriver = driverObj;
                     }
 
+                    // Regular SD/GRD driver
                     if (currentParsedVersion > latestParsedVersion)
                     {
                         latestParsedVersion = currentParsedVersion;
@@ -136,7 +139,7 @@ public class NewMetadataHandler
             }
         }
 
-        // Mark the latest matching driver as recommended
+        // Mark the latest matching driver found as recommended
         NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver ?? nvidiaDrivers.LastOrDefault();
         if (recommendedDriver != null) recommendedDriver.recommended = true;
 

@@ -45,7 +45,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 }
             } catch (Exception) {
                 MainConsole.onlineVer = "0.0.0";
-                Console.WriteLine("Update check unavailable; continuing without client update information.");
+                Console.WriteLine("Update check unavailable, continuing without client update information.");
             }
 
             if (MainConsole.debug) {
