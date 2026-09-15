@@ -159,6 +159,14 @@ namespace TinyNvidiaUpdateChecker.Handlers
             MainConsole.WriteLine();
             MainConsole.WriteLine("No NVIDIA GPU was detected on this system.");
             MainConsole.WriteLine();
+            MainConsole.WriteLine("Found GPUs:");
+
+            foreach (GPU gpu in gpuList)
+            {
+                MainConsole.WriteLine($"GPU Name: '{gpu.name}' | VendorId: {gpu.vendorId} | DeviceId: {gpu.deviceId} | IsNotebook: {gpu.isNotebook}");
+            }
+
+            MainConsole.WriteLine();
 
             // Return no GPU
             return null;
