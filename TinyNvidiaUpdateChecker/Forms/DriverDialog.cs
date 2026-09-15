@@ -44,11 +44,10 @@ namespace TinyNvidiaUpdateChecker
             }
 
             // Make sure selected index (default choice) is recommended driver
-            versionBox.SelectedIndex = selectedDriver.uiIdx;
             selectedDriver = nvidiaDrivers.Find(x => x.recommended);
 
-            // Trigger SelectedIndexChanged event to update labels with the default driver information
-            VersionBoxChangedIndex();
+            // This will trigger SelectedIndexChanged event
+            versionBox.SelectedIndex = selectedDriver.uiIdx;
         }
 
         private void NotesBtn_Click(object sender, EventArgs e)
