@@ -1,4 +1,4 @@
-﻿using HttpClientProgress;
+using HttpClientProgress;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -276,6 +277,11 @@ namespace TinyNvidiaUpdateChecker
         // Local driver install flow
         private static void localDriverInstall()
         {
+            if (!PowerHandler.ConfirmHeavyOperation("installing a driver"))
+            {
+                callExit(1);
+            }
+
             bool fileExists = localDriverPath != null && File.Exists(localDriverPath);
             string selectedFilePath = null;
 
@@ -392,6 +398,7 @@ namespace TinyNvidiaUpdateChecker
                     RunIntro();
                     WriteLine($"Current version is {offlineVer}");
                     WriteLine();
+                    Environment.Exit(0);
                 }
 
                 // automaticly download driver
@@ -467,12 +474,18 @@ namespace TinyNvidiaUpdateChecker
         public static string SendGetRequest(string url)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            using var response = httpClient.Send(request);
+            using var response = SendMetadataRequest(request);
             response.EnsureSuccessStatusCode();
 
             using var stream = response.Content.ReadAsStream();
             using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
+        }
+
+        public static HttpResponseMessage SendMetadataRequest(HttpRequestMessage request)
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            return httpClient.Send(request, HttpCompletionOption.ResponseContentRead, timeout.Token);
         }
 
         /// <summary>
@@ -513,6 +526,11 @@ namespace TinyNvidiaUpdateChecker
 
             if (selectedBtn == DriverDialog.SelectedBtn.DLEXTRACT) {
                 // download and save (and extract)
+
+                if (!PowerHandler.ConfirmHeavyOperation("downloading a driver"))
+                {
+                    callExit(1);
+                }
 
                 string driverFileName = selectedVersion.downloadUrl.Split('/').Last(); // retrives file name from url
                 string savePath = "";
@@ -616,6 +634,11 @@ namespace TinyNvidiaUpdateChecker
         /// </summary>
         private static void DownloadDriverQuiet(NvidiaDriver nvidiaDriver, bool minimized, string overrideDownloadLocation = null, bool keepDriver = false)
         {
+            if (!PowerHandler.ConfirmHeavyOperation("installing a driver"))
+            {
+                callExit(1);
+            }
+
             string driverFileName = nvidiaDriver.downloadUrl.Split('/').Last(); // retrives file name from url
             string savePath = overrideDownloadLocation ?? Path.GetTempPath();
 
@@ -707,11 +730,11 @@ namespace TinyNvidiaUpdateChecker
             }
 
             try {
-                using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.None))  {
+                using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.None, 1, FileOptions.Asynchronous))  {
                     await httpClient.DownloadDataAsync(url, file, progress);
                 }
 
-                File.Move(path, path[..^5]); // rename back
+                File.Move(path, path[..^5], true); // rename back
                 if (progressHandle == null ) { progressBar.Dispose(); }
             } catch {
                 File.Delete(path);
@@ -921,7 +944,7 @@ namespace TinyNvidiaUpdateChecker
                 WriteLine("Press any key to exit...");
             }
 
-            if (showUI & !noPrompt) Console.ReadKey(true);
+            if (showUI && !noPrompt && !Console.IsInputRedirected) Console.ReadKey(true);
             FreeConsole();
             Environment.Exit(exitNum);
         }
@@ -935,7 +958,7 @@ namespace TinyNvidiaUpdateChecker
             // Query release date and file size
             using (var request = new HttpRequestMessage(HttpMethod.Head, downloadUrl))
             {
-                using var response = MainConsole.httpClient.Send(request);
+                using var response = SendMetadataRequest(request);
                 response.EnsureSuccessStatusCode();
 
                 // File size

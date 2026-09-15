@@ -11,7 +11,7 @@ namespace TinyNvidiaUpdateChecker.Forms
         List<Component> componentList;
         List<string> chosenComponents = [];
         string[] configComponents = [];
-        int driverIdx = 0;
+        int driverIdx = -1;
 
         public ComponentChooserForm()
         {
@@ -27,9 +27,14 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 configComponents = configComponentsString.Split(", ", StringSplitOptions.RemoveEmptyEntries);
             }
+            else
+            {
+                List<string> initial = componentList.Any(x => x.name == "Display.Driver") ? ["Display.Driver"] : [];
+                configComponents = ComponentHandler.ApplyLaptopSafeDefaults(initial, GPUHandler.IsNotebookComputer(), componentList).ToArray();
+            }
 
             // If quiet mode + config entry exist, return latest used co
-            if (!MainConsole.showUI && configComponents != null)
+            if (!MainConsole.showUI)
             {
                 return (configComponents.ToList(), false);
             }
@@ -58,11 +63,13 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 latestLabel_LinkClicked(latestLabel, new LinkLabelLinkClickedEventArgs(latestLabel.Links[0]));
             }
+
         }
 
         private void checkedListBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            Component comp = componentList.First(x => x.index == checkedListBox.SelectedIndex);
+            Component comp = componentList.FirstOrDefault(x => x.index == checkedListBox.SelectedIndex);
+            if (comp == null) return;
             string description = ComponentHandler.GetComponentDescription(comp.name);
 
             if (comp.dependencies.Count > 0)
@@ -96,7 +103,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             foreach (int idx in checkedListBox.CheckedIndices)
             {
-                Component comp = componentList.First(x => x.index >= idx);
+                Component comp = componentList.FirstOrDefault(x => x.index == idx);
+                if (comp == null) continue;
                 chosenComponents.Add(comp.name);
 
                 foreach (KeyValuePair<string, string> dependency in comp.dependencies)
@@ -107,7 +115,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             foreach (int idx in checkedListBox.CheckedIndices)
             {
-                Component comp = componentList.First(x => x.index >= idx);
+                Component comp = componentList.FirstOrDefault(x => x.index == idx);
+                if (comp == null) continue;
 
                 if (dependencyList.ContainsKey(comp.name))
                 {

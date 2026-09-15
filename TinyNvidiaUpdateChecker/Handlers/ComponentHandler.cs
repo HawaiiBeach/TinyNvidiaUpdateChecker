@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 
 namespace TinyNvidiaUpdateChecker.Handlers
@@ -11,6 +12,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
         {
             List<Component> components = [];
             XmlDocument doc = new();
+            componentLabel.Clear();
 
             // Return empty list if directory is not found
             if (!Directory.Exists(driverRootPath))
@@ -24,7 +26,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 if (nviFile != null)
                 {
-                    doc.Load(nviFile);
+                    try { doc.Load(nviFile); } catch { continue; }
                     string name = Path.GetFileName(dir);
                     string label = FindNviLabel(doc, name);
 
@@ -74,12 +76,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     {
                         foreach (XmlNode node in packages.ChildNodes)
                         {
-                            XmlElement package = (XmlElement)node;
-                            string type = package.GetAttributeNode("type").InnerText;
+                            if (node is not XmlElement package) continue;
+                            string type = package.GetAttribute("type");
 
                             if (type == "requires")
                             {
-                                string name = package.GetAttributeNode("package").InnerText;
+                                string name = package.GetAttribute("package");
+                                if (string.IsNullOrWhiteSpace(name)) continue;
                                 // Check for component requirement override names as some do not match the component dir name
                                 string overrideName = ValidateNviComponentName(name);
                                 dependencies.TryAdd(overrideName, "");
@@ -262,6 +265,20 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {"VirtualAudio.Driver", "NvVAD"},
             {"GpxCommon.Oss", "Display.Driver"}
         };
+
+        public static List<string> ApplyLaptopSafeDefaults(List<string> selectedComponents, bool isNotebook, List<Component> availableComponents)
+        {
+            List<string> result = selectedComponents == null ? [] : new(selectedComponents);
+            if (isNotebook && result.Contains("Display.Driver", StringComparer.OrdinalIgnoreCase))
+            {
+                foreach (string name in new[] { "NVPCF", "PPC" })
+                {
+                    Component component = availableComponents.FirstOrDefault(x => string.Equals(x.name, name, StringComparison.OrdinalIgnoreCase));
+                    if (component != null && !result.Contains(component.name, StringComparer.OrdinalIgnoreCase)) result.Add(component.name);
+                }
+            }
+            return result;
+        }
     }
 
     public class Component(string name, string label, string version, Dictionary<string, string> dependencies)

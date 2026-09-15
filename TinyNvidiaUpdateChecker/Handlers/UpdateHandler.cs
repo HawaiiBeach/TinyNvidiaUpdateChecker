@@ -43,11 +43,9 @@ namespace TinyNvidiaUpdateChecker.Handlers
                         }
                     }
                 }
-            } catch (Exception ex) {
+            } catch (Exception) {
                 MainConsole.onlineVer = "0.0.0";
-                Console.Write("ERROR!");
-                Console.WriteLine();
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine("Update check unavailable; continuing without client update information.");
             }
 
             if (MainConsole.debug) {
@@ -97,7 +95,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine();
                 Console.WriteLine($"Calculated Hash: {tempHash}");
                 Console.WriteLine($"Server Hash:     {serverHash}");
-            } catch (UnauthorizedAccessException ex) {
+            } catch (UnauthorizedAccessException) {
                 Console.WriteLine("ERROR!");
                 Console.WriteLine();
                 Console.WriteLine("Access to update the current TNUC installation was denied due to unauthorized access. Please rerun TNUC as admin, or update manually.");
