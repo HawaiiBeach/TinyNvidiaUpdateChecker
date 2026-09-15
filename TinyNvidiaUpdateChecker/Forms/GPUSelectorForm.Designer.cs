@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GPUSelectorForm));
             ConfirmBtn = new System.Windows.Forms.Button();
             richTextBox1 = new System.Windows.Forms.RichTextBox();
             comboBox = new System.Windows.Forms.ComboBox();
@@ -38,10 +37,9 @@
             // 
             ConfirmBtn.Anchor = System.Windows.Forms.AnchorStyles.Top;
             ConfirmBtn.Enabled = false;
-            ConfirmBtn.Location = new System.Drawing.Point(234, 123);
-            ConfirmBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            ConfirmBtn.Location = new System.Drawing.Point(205, 92);
             ConfirmBtn.Name = "ConfirmBtn";
-            ConfirmBtn.Size = new System.Drawing.Size(90, 29);
+            ConfirmBtn.Size = new System.Drawing.Size(79, 22);
             ConfirmBtn.TabIndex = 1;
             ConfirmBtn.Text = "Confirm";
             ConfirmBtn.UseVisualStyleBackColor = true;
@@ -51,11 +49,12 @@
             // 
             richTextBox1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             richTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            richTextBox1.Location = new System.Drawing.Point(42, 23);
+            richTextBox1.Location = new System.Drawing.Point(37, 17);
+            richTextBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             richTextBox1.Name = "richTextBox1";
             richTextBox1.ReadOnly = true;
             richTextBox1.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
-            richTextBox1.Size = new System.Drawing.Size(244, 77);
+            richTextBox1.Size = new System.Drawing.Size(214, 58);
             richTextBox1.TabIndex = 10;
             richTextBox1.TabStop = false;
             richTextBox1.Text = "Multiple GPUs have been identified, which one do you want to search updates for?";
@@ -65,22 +64,22 @@
             comboBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             comboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             comboBox.FormattingEnabled = true;
-            comboBox.Location = new System.Drawing.Point(12, 124);
+            comboBox.Location = new System.Drawing.Point(10, 93);
+            comboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             comboBox.Name = "comboBox";
-            comboBox.Size = new System.Drawing.Size(196, 28);
+            comboBox.Size = new System.Drawing.Size(172, 23);
             comboBox.TabIndex = 0;
             comboBox.SelectedIndexChanged += comboBox_SelectedIndexChanged;
             // 
             // GPUSelectorForm
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(336, 171);
+            ClientSize = new System.Drawing.Size(294, 128);
             Controls.Add(comboBox);
             Controls.Add(richTextBox1);
             Controls.Add(ConfirmBtn);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
             Name = "GPUSelectorForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

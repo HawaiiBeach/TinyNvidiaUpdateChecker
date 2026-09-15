@@ -235,7 +235,6 @@ namespace TinyNvidiaUpdateChecker
             Controls.Add(DownloadBtn);
             Controls.Add(DownloadInstallButton);
             FormBorderStyle = FormBorderStyle.None;
-            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "DriverAvailableDialog";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "TinyNvidiaUpdateChecker - Update Dialog";

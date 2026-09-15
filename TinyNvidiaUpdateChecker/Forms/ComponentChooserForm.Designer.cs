@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ComponentChooserForm));
             checkedListBox = new System.Windows.Forms.CheckedListBox();
             okButton = new System.Windows.Forms.Button();
             label1 = new System.Windows.Forms.Label();
@@ -44,19 +43,19 @@
             // 
             checkedListBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
             checkedListBox.FormattingEnabled = true;
-            checkedListBox.Location = new System.Drawing.Point(20, 19);
-            checkedListBox.Margin = new System.Windows.Forms.Padding(5);
+            checkedListBox.Location = new System.Drawing.Point(11, 9);
+            checkedListBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             checkedListBox.Name = "checkedListBox";
-            checkedListBox.Size = new System.Drawing.Size(626, 724);
+            checkedListBox.Size = new System.Drawing.Size(339, 328);
             checkedListBox.TabIndex = 0;
             checkedListBox.SelectedValueChanged += checkedListBox_SelectedValueChanged;
             // 
             // okButton
             // 
-            okButton.Location = new System.Drawing.Point(20, 818);
-            okButton.Margin = new System.Windows.Forms.Padding(5);
+            okButton.Location = new System.Drawing.Point(11, 383);
+            okButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(109, 46);
+            okButton.Size = new System.Drawing.Size(59, 22);
             okButton.TabIndex = 5;
             okButton.Text = "OK";
             okButton.UseVisualStyleBackColor = true;
@@ -65,31 +64,29 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(141, 824);
-            label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label1.Location = new System.Drawing.Point(76, 386);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(479, 32);
+            label1.Size = new System.Drawing.Size(237, 15);
             label1.TabIndex = 6;
             label1.Text = "Choose the components you want to install";
             // 
             // richTextBox
             // 
             richTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            richTextBox.Location = new System.Drawing.Point(658, 19);
-            richTextBox.Margin = new System.Windows.Forms.Padding(5);
+            richTextBox.Location = new System.Drawing.Point(354, 9);
+            richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             richTextBox.Name = "richTextBox";
             richTextBox.ReadOnly = true;
-            richTextBox.Size = new System.Drawing.Size(458, 746);
+            richTextBox.Size = new System.Drawing.Size(247, 350);
             richTextBox.TabIndex = 1;
             richTextBox.Text = "";
             // 
             // noneLabel
             // 
             noneLabel.AutoSize = true;
-            noneLabel.Location = new System.Drawing.Point(20, 770);
-            noneLabel.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            noneLabel.Location = new System.Drawing.Point(11, 361);
             noneLabel.Name = "noneLabel";
-            noneLabel.Size = new System.Drawing.Size(73, 32);
+            noneLabel.Size = new System.Drawing.Size(36, 15);
             noneLabel.TabIndex = 2;
             noneLabel.TabStop = true;
             noneLabel.Text = "None";
@@ -98,10 +95,9 @@
             // allLabel
             // 
             allLabel.AutoSize = true;
-            allLabel.Location = new System.Drawing.Point(141, 770);
-            allLabel.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            allLabel.Location = new System.Drawing.Point(76, 361);
             allLabel.Name = "allLabel";
-            allLabel.Size = new System.Drawing.Size(41, 32);
+            allLabel.Size = new System.Drawing.Size(21, 15);
             allLabel.TabIndex = 3;
             allLabel.TabStop = true;
             allLabel.Text = "All";
@@ -111,10 +107,9 @@
             // latestLabel
             // 
             latestLabel.AutoSize = true;
-            latestLabel.Location = new System.Drawing.Point(227, 770);
-            latestLabel.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            latestLabel.Location = new System.Drawing.Point(122, 361);
             latestLabel.Name = "latestLabel";
-            latestLabel.Size = new System.Drawing.Size(113, 32);
+            latestLabel.Size = new System.Drawing.Size(56, 15);
             latestLabel.TabIndex = 4;
             latestLabel.TabStop = true;
             latestLabel.Text = "Last used";
@@ -123,9 +118,9 @@
             // 
             // ComponentChooserForm
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1136, 886);
+            ClientSize = new System.Drawing.Size(612, 415);
             Controls.Add(latestLabel);
             Controls.Add(allLabel);
             Controls.Add(noneLabel);
@@ -135,7 +130,7 @@
             Controls.Add(checkedListBox);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
-            Margin = new System.Windows.Forms.Padding(5);
+            Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             Name = "ComponentChooserForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Choose Components";

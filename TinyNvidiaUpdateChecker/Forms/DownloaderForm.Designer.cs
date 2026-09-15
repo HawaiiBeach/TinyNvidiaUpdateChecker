@@ -33,20 +33,18 @@
             // 
             // progressBar1
             // 
-            progressBar1.Location = new System.Drawing.Point(12, 15);
-            progressBar1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            progressBar1.Location = new System.Drawing.Point(10, 11);
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new System.Drawing.Size(194, 40);
+            progressBar1.Size = new System.Drawing.Size(170, 30);
             progressBar1.TabIndex = 0;
             // 
             // DownloaderForm
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(218, 70);
+            ClientSize = new System.Drawing.Size(191, 52);
             Controls.Add(progressBar1);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
             Name = "DownloaderForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

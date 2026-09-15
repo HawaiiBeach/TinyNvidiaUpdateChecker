@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigurationForm));
             groupBox1 = new System.Windows.Forms.GroupBox();
             minimalCheckBox = new System.Windows.Forms.CheckBox();
             updateCheckBox = new System.Windows.Forms.CheckBox();
@@ -54,9 +53,11 @@
             // 
             groupBox1.Controls.Add(minimalCheckBox);
             groupBox1.Controls.Add(updateCheckBox);
-            groupBox1.Location = new System.Drawing.Point(12, 43);
+            groupBox1.Location = new System.Drawing.Point(10, 32);
+            groupBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(246, 97);
+            groupBox1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            groupBox1.Size = new System.Drawing.Size(215, 73);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "General";
@@ -64,9 +65,10 @@
             // minimalCheckBox
             // 
             minimalCheckBox.AutoSize = true;
-            minimalCheckBox.Location = new System.Drawing.Point(12, 56);
+            minimalCheckBox.Location = new System.Drawing.Point(10, 42);
+            minimalCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             minimalCheckBox.Name = "minimalCheckBox";
-            minimalCheckBox.Size = new System.Drawing.Size(184, 24);
+            minimalCheckBox.Size = new System.Drawing.Size(147, 19);
             minimalCheckBox.TabIndex = 2;
             minimalCheckBox.Text = "Enable minimal install?";
             minimalCheckBox.UseVisualStyleBackColor = true;
@@ -74,18 +76,20 @@
             // updateCheckBox
             // 
             updateCheckBox.AutoSize = true;
-            updateCheckBox.Location = new System.Drawing.Point(12, 26);
+            updateCheckBox.Location = new System.Drawing.Point(10, 20);
+            updateCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             updateCheckBox.Name = "updateCheckBox";
-            updateCheckBox.Size = new System.Drawing.Size(228, 24);
+            updateCheckBox.Size = new System.Drawing.Size(184, 19);
             updateCheckBox.TabIndex = 1;
             updateCheckBox.Text = "Check for updates on startup?";
             updateCheckBox.UseVisualStyleBackColor = true;
             // 
             // cancelButton
             // 
-            cancelButton.Location = new System.Drawing.Point(195, 417);
+            cancelButton.Location = new System.Drawing.Point(171, 313);
+            cancelButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(63, 29);
+            cancelButton.Size = new System.Drawing.Size(55, 22);
             cancelButton.TabIndex = 8;
             cancelButton.Text = "Cancel";
             cancelButton.UseVisualStyleBackColor = true;
@@ -93,9 +97,10 @@
             // 
             // saveButton
             // 
-            saveButton.Location = new System.Drawing.Point(95, 417);
+            saveButton.Location = new System.Drawing.Point(83, 313);
+            saveButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             saveButton.Name = "saveButton";
-            saveButton.Size = new System.Drawing.Size(94, 29);
+            saveButton.Size = new System.Drawing.Size(82, 22);
             saveButton.TabIndex = 7;
             saveButton.Text = "Save";
             saveButton.UseVisualStyleBackColor = true;
@@ -105,9 +110,11 @@
             // 
             groupBox2.Controls.Add(sdRadioButton);
             groupBox2.Controls.Add(grdRadioButton);
-            groupBox2.Location = new System.Drawing.Point(12, 146);
+            groupBox2.Location = new System.Drawing.Point(10, 110);
+            groupBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new System.Drawing.Size(246, 97);
+            groupBox2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            groupBox2.Size = new System.Drawing.Size(215, 73);
             groupBox2.TabIndex = 2;
             groupBox2.TabStop = false;
             groupBox2.Text = "Driver type";
@@ -115,9 +122,10 @@
             // sdRadioButton
             // 
             sdRadioButton.AutoSize = true;
-            sdRadioButton.Location = new System.Drawing.Point(12, 56);
+            sdRadioButton.Location = new System.Drawing.Point(10, 42);
+            sdRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             sdRadioButton.Name = "sdRadioButton";
-            sdRadioButton.Size = new System.Drawing.Size(117, 24);
+            sdRadioButton.Size = new System.Drawing.Size(93, 19);
             sdRadioButton.TabIndex = 4;
             sdRadioButton.TabStop = true;
             sdRadioButton.Text = "Studio Driver";
@@ -126,9 +134,10 @@
             // grdRadioButton
             // 
             grdRadioButton.AutoSize = true;
-            grdRadioButton.Location = new System.Drawing.Point(12, 26);
+            grdRadioButton.Location = new System.Drawing.Point(10, 20);
+            grdRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             grdRadioButton.Name = "grdRadioButton";
-            grdRadioButton.Size = new System.Drawing.Size(219, 24);
+            grdRadioButton.Size = new System.Drawing.Size(173, 19);
             grdRadioButton.TabIndex = 3;
             grdRadioButton.TabStop = true;
             grdRadioButton.Text = "Game Ready Driver (default)";
@@ -137,9 +146,9 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(12, 9);
+            label1.Location = new System.Drawing.Point(10, 7);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(141, 20);
+            label1.Size = new System.Drawing.Size(115, 15);
             label1.TabIndex = 0;
             label1.Text = "Configuration Menu";
             // 
@@ -147,18 +156,21 @@
             // 
             multiGpuGroupBox.Controls.Add(resetGpuButton);
             multiGpuGroupBox.Enabled = false;
-            multiGpuGroupBox.Location = new System.Drawing.Point(12, 249);
+            multiGpuGroupBox.Location = new System.Drawing.Point(10, 187);
+            multiGpuGroupBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             multiGpuGroupBox.Name = "multiGpuGroupBox";
-            multiGpuGroupBox.Size = new System.Drawing.Size(246, 94);
+            multiGpuGroupBox.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            multiGpuGroupBox.Size = new System.Drawing.Size(215, 70);
             multiGpuGroupBox.TabIndex = 3;
             multiGpuGroupBox.TabStop = false;
             multiGpuGroupBox.Text = "Multi GPU Setup";
             // 
             // resetGpuButton
             // 
-            resetGpuButton.Location = new System.Drawing.Point(12, 26);
+            resetGpuButton.Location = new System.Drawing.Point(10, 20);
+            resetGpuButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             resetGpuButton.Name = "resetGpuButton";
-            resetGpuButton.Size = new System.Drawing.Size(140, 51);
+            resetGpuButton.Size = new System.Drawing.Size(122, 38);
             resetGpuButton.TabIndex = 5;
             resetGpuButton.Text = "Reset GPU choice\r\n(requires restart)";
             resetGpuButton.UseVisualStyleBackColor = true;
@@ -167,9 +179,11 @@
             // groupBox4
             // 
             groupBox4.Controls.Add(experimentalCheckBox);
-            groupBox4.Location = new System.Drawing.Point(12, 349);
+            groupBox4.Location = new System.Drawing.Point(10, 262);
+            groupBox4.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new System.Drawing.Size(246, 58);
+            groupBox4.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            groupBox4.Size = new System.Drawing.Size(215, 44);
             groupBox4.TabIndex = 6;
             groupBox4.TabStop = false;
             groupBox4.Text = "Experimental";
@@ -177,9 +191,10 @@
             // experimentalCheckBox
             // 
             experimentalCheckBox.AutoSize = true;
-            experimentalCheckBox.Location = new System.Drawing.Point(12, 26);
+            experimentalCheckBox.Location = new System.Drawing.Point(10, 20);
+            experimentalCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             experimentalCheckBox.Name = "experimentalCheckBox";
-            experimentalCheckBox.Size = new System.Drawing.Size(222, 24);
+            experimentalCheckBox.Size = new System.Drawing.Size(174, 19);
             experimentalCheckBox.TabIndex = 6;
             experimentalCheckBox.Text = "Use experimental data repo?";
             toolTip1.SetToolTip(experimentalCheckBox, "Uses an experimental GPU metadata repo. This resolves issues with eGPUs and TNUC not able to identify GPUs by name. Data provided by TechPowerUp");
@@ -187,9 +202,9 @@
             // 
             // ConfigurationForm
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(270, 458);
+            ClientSize = new System.Drawing.Size(236, 344);
             Controls.Add(groupBox4);
             Controls.Add(multiGpuGroupBox);
             Controls.Add(label1);
@@ -199,6 +214,7 @@
             Controls.Add(groupBox1);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.Execut‌​ablePath);
+            Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             Name = "ConfigurationForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Configuration Menu";
