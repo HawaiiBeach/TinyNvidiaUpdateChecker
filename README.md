@@ -26,6 +26,10 @@ Stops the NVIDIA spyware from being installed on your computer. You choose EXACT
 
 No bloatware gets installed.
 
+### Flexible Driver Management
+
+Always displays a recommended update, while providing an optional list of older compatible versions. Easily downgrade when facing bugs, or seamlessly switch between Game Ready Drivers (GRD) and Studio (SD) drivers anytime.
+
 ## Dependencies
 
 - Windows 10 or higher
