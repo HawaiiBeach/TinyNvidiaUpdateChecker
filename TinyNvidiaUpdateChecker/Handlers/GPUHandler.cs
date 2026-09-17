@@ -72,7 +72,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                         string rawVersion = gpu["DriverVersion"]?.ToString().Replace(".", string.Empty);
                         string pnp = gpu["PNPDeviceID"]?.ToString();
 
-                        if (rawGpuLabel == null || rawVersion == null || pnp == null || !pnp.Contains("&DEV_"))
+                        if (rawGpuLabel == null || pnp == null || !pnp.Contains("&DEV_"))
                         {
                             continue;
                         }
@@ -85,7 +85,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                         if (Regex.IsMatch(rawGpuLabel, @"^NVIDIA") && nameRegex.IsMatch(rawGpuLabel))
                         {
                             string gpuLabel = nameRegex.Match(rawGpuLabel).Value.Trim().Replace("Super", "SUPER");
-                            string cleanVersion = rawVersion.Length >= 5 ? rawVersion[^5..].Insert(3, ".") : "000.00";
+                            string cleanVersion = rawVersion?.Length >= 5 ? rawVersion[^5..].Insert(3, ".") : "000.00";
 
                             gpuList.Add(new GPU(gpuLabel, cleanVersion, vendorId, deviceId, true, isNotebook));
                         }
@@ -117,12 +117,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 {
 
                     // Retrieve GPU ID from config, or prompts user to choose, if config is not found
-                    string configGpuId = ConfigurationHandler.ReadSetting("GPU ID", gpuList).ToLower();
+                    string configGpuId = ConfigurationHandler.ReadSetting("GPU ID", gpuList);
 
                     // Validate that the GPU ID is still active on this system
                     foreach (GPU gpu in gpuList.Where(x => x.isValidated))
                     {
-                        if (gpu.deviceId.ToLower() == configGpuId)
+                        if (string.Equals(gpu.deviceId, configGpuId, StringComparison.OrdinalIgnoreCase))
                         {
                             return gpu;
                         }
@@ -133,7 +133,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                     foreach (GPU gpu in gpuList.Where(x => x.isValidated))
                     {
-                        if (gpu.deviceId.ToLower() == configGpuId)
+                        if (string.Equals(gpu.deviceId, configGpuId, StringComparison.OrdinalIgnoreCase))
                         {
                             return gpu;
                         }

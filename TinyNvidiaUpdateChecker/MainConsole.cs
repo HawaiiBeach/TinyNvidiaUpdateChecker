@@ -190,6 +190,12 @@ namespace TinyNvidiaUpdateChecker
             Write("Retrieving GPU information . . . ");
 
             GPU gpu = GPUHandler.GetGPU();
+            if (gpu == null)
+            {
+                WriteLine("Unable to retrieve an NVIDIA GPU for driver lookup.");
+                callExit(1);
+                return;
+            }
             string driverType = ConfigurationHandler.ReadSetting("Driver type");
             bool useExperimental = ConfigurationHandler.ReadSetting("Use Experimental Metadata", null, false) == "true";
 
@@ -643,7 +649,7 @@ namespace TinyNvidiaUpdateChecker
             string driverFileName = nvidiaDriver.downloadUrl.Split('/').Last(); // retrives file name from url
             string savePath = overrideDownloadLocation ?? Path.GetTempPath();
 
-            string FULL_PATH_DIRECTORY = overrideDownloadLocation ?? savePath + OnlineGPUVersion + @"\";
+            string FULL_PATH_DIRECTORY = overrideDownloadLocation ?? Path.Combine(savePath, nvidiaDriver.version) + Path.DirectorySeparatorChar;
             string FULL_PATH_DRIVER = FULL_PATH_DIRECTORY + driverFileName;
 
             savePath = FULL_PATH_DIRECTORY;
@@ -731,8 +737,8 @@ namespace TinyNvidiaUpdateChecker
             }
 
             try {
-                using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.None, 1, FileOptions.Asynchronous))  {
-                    await httpClient.DownloadDataAsync(url, file, progress);
+                using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, 1, FileOptions.Asynchronous))  {
+                    await httpClient.DownloadDataAsync(url, file, progress).ConfigureAwait(false);
                 }
 
                 File.Move(path, path[..^5], true); // rename back
@@ -853,26 +859,25 @@ namespace TinyNvidiaUpdateChecker
 
             string[] extractFiles = [.. chosenComponents, "NVI2", "EULA.txt", "license.txt", "ListDevices.txt", "setup.cfg", "setup.exe"];
 
+            foreach (string file in extractFiles)
+            {
+                string destination = Path.Combine(savePath, file);
+                if (File.Exists(destination) || Directory.Exists(destination))
+                    throw new IOException($"Extraction destination already exists: {destination}. Select an empty folder.");
+            }
+
             foreach (string file in extractFiles) {
                 string filePath = Path.Combine(savePath, "temp", file);
 
                 if (File.Exists(filePath))
                 {
-                    try
-                    {
-                        string destinationFilePath = Path.Combine(savePath, file);
-                        File.Move(filePath, destinationFilePath);
-                    }
-                    catch { }
+                    string destinationFilePath = Path.Combine(savePath, file);
+                    File.Move(filePath, destinationFilePath);
                 }
                 else if (Directory.Exists(filePath))
                 {
-                    try
-                    {
-                        string destinationDirectoryPath = Path.Combine(savePath, Path.GetFileName(filePath));
-                        Directory.Move(filePath, destinationDirectoryPath);
-                    }
-                    catch { }
+                    string destinationDirectoryPath = Path.Combine(savePath, Path.GetFileName(filePath));
+                    Directory.Move(filePath, destinationDirectoryPath);
                 }
             }
 
@@ -939,13 +944,13 @@ namespace TinyNvidiaUpdateChecker
         /// 
         public static void callExit(int exitNum)
         {
-            if (!noPrompt)
+            if (showUI && !noPrompt && !confirmDL && !Console.IsInputRedirected)
             {
                 WriteLine();
                 WriteLine("Press any key to exit...");
             }
 
-            if (showUI && !noPrompt && !Console.IsInputRedirected) Console.ReadKey(true);
+            if (showUI && !noPrompt && !confirmDL && !Console.IsInputRedirected) Console.ReadKey(true);
             FreeConsole();
             Environment.Exit(exitNum);
         }
@@ -963,11 +968,11 @@ namespace TinyNvidiaUpdateChecker
                 response.EnsureSuccessStatusCode();
 
                 // File size
-                long fileSize = response.Content.Headers.ContentLength.Value;
+                long fileSize = response.Content.Headers.ContentLength ?? -1;
 
                 // Release date
                 DateTimeOffset? releaseDateOffset = response.Content.Headers.LastModified;
-                DateTime releaseDate = (DateTime)(releaseDateOffset?.LocalDateTime);
+                DateTime releaseDate = releaseDateOffset?.LocalDateTime ?? DateTime.MinValue;
 
                 return (fileSize, releaseDate);
             }

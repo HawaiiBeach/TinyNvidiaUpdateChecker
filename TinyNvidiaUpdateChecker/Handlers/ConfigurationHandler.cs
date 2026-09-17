@@ -142,7 +142,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine(ex.ToString());
                 Console.WriteLine();
                 Console.WriteLine("The config file has been wiped due to a possible syntax error, please run the application again and setup your values.");
-                if (MainConsole.showUI) Console.ReadKey();
+                if (MainConsole.showUI && !MainConsole.confirmDL && !MainConsole.noPrompt && !Console.IsInputRedirected)
+                    Console.ReadKey(true);
                 Environment.Exit(1);
             }
         }

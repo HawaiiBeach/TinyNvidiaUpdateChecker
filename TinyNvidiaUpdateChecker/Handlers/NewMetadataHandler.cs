@@ -85,7 +85,7 @@ public class NewMetadataHandler
         Version latestParsedVersion = new(0, 0);
         Version latestNotebookVersion = new(0, 0);
         bool isMobileGpu = IsMobileGpuIndex(gpuIndex);
-        bool preferNotebook = driverType != "sd" && isMobileGpu;
+        bool preferNotebook = !string.Equals(driverType, "sd", StringComparison.OrdinalIgnoreCase) && isMobileGpu;
 
         if (_combinedGpuData?.versions == null) return nvidiaDrivers;
 
@@ -99,6 +99,7 @@ public class NewMetadataHandler
 
                 // Map experimental metadata "Type" to TNUC driver type
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
+                if (driverTypeKey == "unknown") continue;
 
                 // For some reason, expermiental metadata repo is matching desktop GPUs with notebook drivers
                 // Filter out notebook drivers for desktop GPUs
@@ -119,11 +120,13 @@ public class NewMetadataHandler
                 nvidiaDrivers.Add(driverObj);
 
                 // Compares the most up to date version, and system compatible (GRD/SD/Notebook), then sets it as recommended
-                if (driverTypeKey == driverType && Version.TryParse(driver.version, out Version currentParsedVersion))
+                bool matchesPreference = string.Equals(driverTypeKey, driverType, StringComparison.OrdinalIgnoreCase)
+                    || (preferNotebook && driverTypeKey == "notebook");
+                if (matchesPreference && Version.TryParse(driver.version, out Version currentParsedVersion))
                 {
 
                     // If we prefer notebook drivers and this is a notebook variant
-                    if (preferNotebook && driver.type == "notebook" && currentParsedVersion > latestNotebookVersion)
+                    if (preferNotebook && driverTypeKey == "notebook" && currentParsedVersion > latestNotebookVersion)
                     {
                         latestNotebookVersion = currentParsedVersion;
                         latestNotebookDriver = driverObj;
@@ -152,7 +155,7 @@ public class NewMetadataHandler
     // Maps experimental metadata "Type" to TNUC driver type
     private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string driverType)
     {
-        switch (driverType?.ToLower())
+        switch (driverType?.Trim().ToLowerInvariant())
         {
             case "desktop":
                 return ("grd", "Game Ready Driver");
@@ -161,7 +164,7 @@ public class NewMetadataHandler
             case "notebook":
                 return ("notebook", "Notebook");
             default:
-                return ("grd", "Game Ready Driver");
+                return ("unknown", "Unknown");
         }
     }
 

@@ -41,6 +41,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             // Use AJAX API
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetDriverInfo(gpu, osId, driverType);
+            if (nvidiaDrivers == null) return (null, "No driver matches the configured driver family.", null);
 
             // Return found
             return (nvidiaDrivers, null, releaseNotes);
@@ -139,13 +140,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 JObject driver = (JObject)driversFound[i]["downloadInfo"];
 
                 // To identify Quadro New Feature Branch (NFB) drivers, check if IsFeaturePreview is set to 1
-                bool isFeaturePreview = driver["IsFeaturePreview"].ToString() == "1";
+                bool isFeaturePreview = (driver["IsFeaturePreview"]?.ToString() ?? "0") == "1";
 
                 // Get driver type and label based on download URL + isFeaturePreview
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver["DownloadURL"].ToString(), isFeaturePreview);
 
                 // Extract PDF URL from OtherNotes
-                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"].ToString());
+                string otherNotes = Uri.UnescapeDataString((string)driver["OtherNotes"] ?? string.Empty);
                 string pdfUrl = ExtractPdfUrlFromNotes(otherNotes);
 
                 NvidiaDriver driverObj = new()
@@ -169,6 +170,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 nvidiaDrivers.Add(driverObj);
             }
+
+            if (recommendedDriverIdx < 0) return (null, null);
 
             // Get raw release notes
             JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
@@ -292,33 +295,28 @@ namespace TinyNvidiaUpdateChecker.Handlers
         // Maps NVIDIA Ajax metadata "Type" to TNUC driver type
         private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string downloadUrl, bool isFeaturePreview)
         {
-            // Quadro - Stable branch
-            if (downloadUrl.Contains("Quadro_Certified")) {
-                if (isFeaturePreview) {
-                    return ("quadro-nfb", "New Feature Branch (RTX Enterprise)");
-                } else {
-                    return ("quadro", "Quadro (RTX Enterprise)");
-                }
+            if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out Uri uri))
+                return ("unknown", "Unknown");
 
-            // Desktop - GRD
-            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-dch-whql.exe")) {
-                return ("grd", "Game Ready Driver");
-
-            // Desktop - SD
-            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-nsd-dch-whql.exe")) {
-                return ("sd", "Studio Driver");
-
-            // Notebook - GRD
-            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-dch-whql.exe")) {
-                return ("notebook", "Notebook");
-
-            // Notebook - SD
-            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-nsd-dch-whql.exe")) {
-                return ("sd-notebook", "Studio Driver (Notebook)");
+            string path = Uri.UnescapeDataString(uri.AbsolutePath);
+            string[] segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Contains("Quadro_Certified", StringComparer.OrdinalIgnoreCase))
+            {
+                return isFeaturePreview
+                    ? ("quadro-nfb", "New Feature Branch (RTX Enterprise)")
+                    : ("quadro", "Quadro (RTX Enterprise)");
             }
 
-            // Fallback is desktop GRD
-            return ("grd", "Game Ready Driver (Unknown)");
+            string[] tokens = Path.GetFileNameWithoutExtension(path).Split('-');
+            bool notebook = tokens.Contains("notebook", StringComparer.OrdinalIgnoreCase);
+            bool studio = tokens.Contains("nsd", StringComparer.OrdinalIgnoreCase);
+            if (studio)
+                return notebook ? ("sd-notebook", "Studio Driver (Notebook)") : ("sd", "Studio Driver");
+            if (notebook) return ("notebook", "Notebook");
+            if (tokens.Contains("desktop", StringComparer.OrdinalIgnoreCase))
+                return ("grd", "Game Ready Driver");
+
+            return ("unknown", "Unknown");
         }
 
         public static int GetOsId()
