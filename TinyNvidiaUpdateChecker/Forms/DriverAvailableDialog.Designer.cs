@@ -192,7 +192,7 @@ namespace TinyNvidiaUpdateChecker
             configButton.Name = "configButton";
             configButton.Size = new System.Drawing.Size(232, 31);
             configButton.TabIndex = 7;
-            configButton.Text = "Open configuration menu";
+            configButton.Text = "Open Configuration Menu";
             configButton.UseVisualStyleBackColor = true;
             configButton.Click += configButton_Click;
             // 

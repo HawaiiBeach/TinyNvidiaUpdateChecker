@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace TinyNvidiaUpdateChecker.Handlers
 {
@@ -130,27 +130,37 @@ namespace TinyNvidiaUpdateChecker.Handlers
             JArray driversFound = GetDriversFromNvidiaAjax(gpu.pfId, osId);
 
             // Driver type (upCRD)
-            // - 0 is Game Ready Driver (GRD)
+            // - 0 is Game Ready Driver (GRD), and/or notebook, and/or quadro (RTX enterprise)
             // - 1 is Studio Driver (SD)
             int driverTypeInt = driverType == "grd" ? 0 : 1;
 
             for (int i = 0; i < driversFound.Count; i++)
             {
                 JObject driver = (JObject)driversFound[i]["downloadInfo"];
-                string driverTypeKey = driver["IsCRD"].ToString() == "0" ? "grd" : "sd";
-                string driverTypeLabel = driverTypeKey == "grd" ? "Game Ready Driver" : "Studio Driver";
+
+                // To identify Quadro New Feature Branch (NFB) drivers, check if IsFeaturePreview is set to 1
+                bool isFeaturePreview = driver["IsFeaturePreview"].ToString() == "1";
+
+                // Get driver type and label based on download URL + isFeaturePreview
+                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver["DownloadURL"].ToString(), isFeaturePreview);
+
+                // Extract PDF URL from OtherNotes
+                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"].ToString());
+                string pdfUrl = ExtractPdfUrlFromNotes(otherNotes);
 
                 NvidiaDriver driverObj = new()
                 {
                     title = $"{driver["Version"].ToString()} - Type: {driverTypeLabel}",
                     version = driver["Version"].ToString(),
                     type = driverTypeKey,
+                    typeLabel = driverTypeLabel,
                     downloadUrl = driver["DownloadURL"].ToString(),
+                    pdfUrl = pdfUrl,
                     fileSizeEst = driver["DownloadURLFileSize"].ToString(),
                     releaseDate = DateTime.Parse(driver["ReleaseDateTime"].ToString())
                 };
 
-                // If the driver matches driverType, and if recommended driver is unset
+                // Set recommended driver if unset, and the driver matches driverType
                 if (recommendedDriverIdx == -1 && driver["IsCRD"].ToString() == driverTypeInt.ToString())
                 {
                     recommendedDriverIdx = i;
@@ -165,7 +175,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"].ToString());
 
             // Load release notes
-            var htmlDocument = new HtmlAgilityPack.HtmlDocument();
+            HtmlAgilityPack.HtmlDocument htmlDocument = new();
             htmlDocument.LoadHtml(tempNotes);
 
             // Remove image nodes
@@ -191,6 +201,27 @@ namespace TinyNvidiaUpdateChecker.Handlers
             string releaseNotes = sanitizer.Sanitize(tempNotes);
 
             return (nvidiaDrivers, releaseNotes);
+        }
+
+        // Extracts driver PDF URL from NVIDIA OtherNotes
+        private static string ExtractPdfUrlFromNotes(string otherNotes)
+        {
+            // Load otherNotes into HtmlAgilityPack
+            HtmlAgilityPack.HtmlDocument htmlDocument = new();
+            htmlDocument.LoadHtml(otherNotes);
+
+            IEnumerable<HtmlNode> node = htmlDocument.DocumentNode.Descendants("a").Where(x => x.Attributes.Contains("href"));
+
+            // Loop all nodes and find the one that contains "release-notes.pdf" in the href attribute
+            foreach (HtmlNode child in node)
+            {
+                if (child.Attributes["href"].Value.Contains("release-notes.pdf"))
+                {
+                    return child.Attributes["href"].Value.Trim();
+                }
+            }
+
+            return null;
         }
 
         private static JArray GetDriversFromNvidiaAjax(int pfId, int osId)
@@ -256,6 +287,38 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 return (false, 0);
             }
+        }
+
+        // Maps NVIDIA Ajax metadata "Type" to TNUC driver type
+        private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string downloadUrl, bool isFeaturePreview)
+        {
+            // Quadro - Stable branch
+            if (downloadUrl.Contains("Quadro_Certified")) {
+                if (isFeaturePreview) {
+                    return ("quadro-nfb", "New Feature Branch (RTX Enterprise)");
+                } else {
+                    return ("quadro", "Quadro (RTX Enterprise)");
+                }
+
+            // Desktop - GRD
+            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-dch-whql.exe")) {
+                return ("grd", "Game Ready Driver");
+
+            // Desktop - SD
+            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-nsd-dch-whql.exe")) {
+                return ("sd", "Studio Driver");
+
+            // Notebook - GRD
+            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-dch-whql.exe")) {
+                return ("notebook", "Notebook");
+
+            // Notebook - SD
+            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-nsd-dch-whql.exe")) {
+                return ("sd-notebook", "Studio Driver (Notebook)");
+            }
+
+            // Fallback is desktop GRD
+            return ("grd", "Game Ready Driver (Unknown)");
         }
 
         public static int GetOsId()

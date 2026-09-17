@@ -57,7 +57,11 @@ namespace TinyNvidiaUpdateChecker
         {
             string pdfUrl = null;
 
-            if (selectedDriver.downloadUrl.Contains("Quadro_Certified"))
+            if (selectedDriver.pdfUrl != null)
+            {
+                pdfUrl = selectedDriver.pdfUrl;
+            }
+            else if (selectedDriver.downloadUrl.Contains("Quadro_Certified"))
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/Quadro_Certified/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nvidia-rtx-quadro-release-notes.pdf";
             }
@@ -191,12 +195,11 @@ namespace TinyNvidiaUpdateChecker
             }
 
             toolTip1.SetToolTip(releasedLabel, selectedDriver.releaseDate.ToShortDateString());
-            string driverTypeLabel = selectedDriver.type == "grd" ? "Game Ready Driver" : "Studio Driver";
 
             releasedLabel.Text = $"Released: {daysAgoFromRelease}";
             versionLabel.Text = $"Version: {selectedDriver.version} (you're on {MainConsole.OfflineGPUVersion})";
             sizeLabel.Text = $"Size: {selectedDriver.fileSizeEst}";
-            typeLabel.Text = $"Type: {driverTypeLabel}";
+            typeLabel.Text = $"Type: {selectedDriver.typeLabel}";
         }
 
         public enum SelectedBtn

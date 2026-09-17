@@ -25,25 +25,13 @@ public class NvidiaDriver
     public string title { get; set; }
     public string version { get; set; }
     public string type { get; set; }
+    public string typeLabel { get; set; }
     public string fileSizeEst { get; set; }
     public string downloadUrl { get; set; }
+    public string pdfUrl { get; set; }
     public DateTime releaseDate { get; set; }
     public bool recommended { get; set; }
     public int uiIdx { get; set; }
-}
-
-public class DriverMetadata(string name, string version, long fileSize, string platform, string downloadUrl, string pdfUrl, string releaseNotes, DateTime releaseDate)
-{
-    public DriverMetadata() : this(null, null, 0, null, null, null, null, new DateTime()) {}
-
-    public string name { get; set; } = name;
-    public string version { get; set; } = version;
-    public long fileSize { get; set; } = fileSize;
-    public string platform { get; set; } = platform;
-    public string downloadUrl { get; set; } = downloadUrl;
-    public string pdfUrl { get; set; } = pdfUrl;
-    public string releaseNotes { get; set; } = releaseNotes;
-    public DateTime releaseDate { get; set; } = releaseDate;
 }
 
 public class OSClassRoot : List<OSClass> { }
