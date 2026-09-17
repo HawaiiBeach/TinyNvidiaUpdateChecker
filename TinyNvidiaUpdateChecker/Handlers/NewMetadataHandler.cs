@@ -23,8 +23,6 @@ public class DriverVersion
     public List<string> os { get; set; }
     public string bit { get; set; }
     public string type { get; set; }
-    public string variant { get; set; }
-    public string notebook { get; set; }
     public int dch { get; set; }
     public List<int> supports { get; set; }
 }
@@ -79,14 +77,6 @@ public class NewMetadataHandler
                 || device.name?.Contains("Max-Q", StringComparison.OrdinalIgnoreCase) == true);
     }
 
-    private static bool IsNotebookVariant(DriverVersion driver)
-    {
-        return string.Equals(driver.notebook, "true", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(driver.type, "Notebook", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(driver.variant, "notebook", StringComparison.OrdinalIgnoreCase)
-            || driver.key?.Contains("notebook", StringComparison.OrdinalIgnoreCase) == true;
-    }
-
     public static List<NvidiaDriver> FindDriversForGpu(int gpuIndex, string driverType)
     {
         List<NvidiaDriver> nvidiaDrivers = new();
@@ -94,7 +84,8 @@ public class NewMetadataHandler
         NvidiaDriver latestNotebookDriver = null;
         Version latestParsedVersion = new(0, 0);
         Version latestNotebookVersion = new(0, 0);
-        bool preferNotebook = driverType != "sd" && IsMobileGpuIndex(gpuIndex);
+        bool isMobileGpu = IsMobileGpuIndex(gpuIndex);
+        bool preferNotebook = driverType != "sd" && isMobileGpu;
 
         if (_combinedGpuData?.versions == null) return nvidiaDrivers;
 
@@ -103,8 +94,16 @@ public class NewMetadataHandler
             // If the driver supports our GPU
             if (driver?.supports?.Contains(gpuIndex) == true)
             {
-                string driverTypeKey = GetDriverTypeKey(driver.type);
-                string driverTypeLabel = driverTypeKey == "grd" ? "Game Ready Driver" : "Studio Driver";
+                // Ignore 32 bit drivers
+                if (driver.bit == "32") continue;
+
+                // Map experimental metadata "Type" to TNUC driver type
+                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
+
+                // For some reason, expermiental metadata repo is matching desktop GPUs with notebook drivers
+                // Filter out notebook drivers for desktop GPUs
+                if (!isMobileGpu && driverTypeKey == "notebook") continue;
+
                 string downloadUrl = $"https://international.download.nvidia.com/Windows/{driver.version}/{driver.key}.exe";
 
                 NvidiaDriver driverObj = new()
@@ -112,6 +111,7 @@ public class NewMetadataHandler
                     title = $"{driver.version} - Type: {driverTypeLabel}",
                     version = driver.version,
                     type = driverTypeKey,
+                    typeLabel = driverTypeLabel,
                     downloadUrl = downloadUrl,
                     fileSizeEst = "unknown" // File size est not available
                 };
@@ -123,7 +123,7 @@ public class NewMetadataHandler
                 {
 
                     // If we prefer notebook drivers and this is a notebook variant
-                    if (preferNotebook && IsNotebookVariant(driver) && currentParsedVersion > latestNotebookVersion)
+                    if (preferNotebook && driver.type == "notebook" && currentParsedVersion > latestNotebookVersion)
                     {
                         latestNotebookVersion = currentParsedVersion;
                         latestNotebookDriver = driverObj;
@@ -149,18 +149,19 @@ public class NewMetadataHandler
         return nvidiaDrivers;
     }
 
-    private static string GetDriverTypeKey(string driverType)
+    // Maps experimental metadata "Type" to TNUC driver type
+    private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string driverType)
     {
         switch (driverType?.ToLower())
         {
             case "desktop":
-                return "grd";
-            case "notebook":
-                return "grd";
+                return ("grd", "Game Ready Driver");
             case "studio":
-                return "sd";
+                return ("sd", "Studio Driver");
+            case "notebook":
+                return ("notebook", "Notebook");
             default:
-                return "grd";
+                return ("grd", "Game Ready Driver");
         }
     }
 
