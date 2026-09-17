@@ -8,27 +8,11 @@ Made by Windows power users, for Windows power users.
 
 - [Join the community Discord](https://discord.gg/CSckkRu9Y5)
 
-## Main features
+## Installation
 
-### Lightweight, portable and fully open-sourced
-
-Alternatives are either bloated, or not open-sourced, or both. They are a security vulnerability waiting to happen.
-
-Or they require you to install them, and cannot be run in portable mode - leaving a lot of trash files in your PC.
-
-Some even require admin permissions to run (!!).
-
-### Debloats the driver install
-
-![Minimall install feature showcase](TNUC_minimal_install.png)
-
-Stops the NVIDIA spyware from being installed on your computer. You choose EXACTLY which components of the driver you actually want to install.
-
-No bloatware gets installed.
-
-### Flexible Driver Management
-
-Always displays a recommended update, while providing an optional list of older compatible versions. Easily downgrade when facing bugs, or seamlessly switch between Game Ready Drivers (GRD) and Studio (SD) drivers anytime.
+1. [Download the latest version](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/releases)
+2. Start TinyNvidiaUpdateChecker.exe
+3. (Optional) Configure [execute when logging in](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Quiet-runs-on-user-login)
 
 ## Dependencies
 
@@ -36,12 +20,6 @@ Always displays a recommended update, while providing an optional list of older 
 - [.NET Desktop Runtime 8 x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (it will be prompted to install if missing, or install with `winget install Microsoft.DotNet.DesktopRuntime.8`)
 - Internet connection
 - (optional) WinRAR, 7-Zip or NanaZip for minimal install feature (driver debloat)
-
-## Installation
-
-1. [Download the latest version](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/releases)
-2. Start TinyNvidiaUpdateChecker.exe
-3. (Optional) Configure [execute when logging in](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki/Quiet-runs-on-user-login)
 
 ### Install with [Scoop](https://scoop.sh/#/apps?s=2&d=1&o=true&p=1&q=tinynvidiaupdatechecker)
 
@@ -58,6 +36,26 @@ winget source update
 winget install Microsoft.DotNet.DesktopRuntime.8
 winget install Hawaii_Beach.TinyNvidiaUpdateChecker
 ```
+
+## Main features
+
+### Lightweight, portable and fully open-sourced
+
+Alternatives are either bloated, or not open-sourced, or both. They are a security vulnerability waiting to happen.
+
+Or they require you to install them, and cannot be run in portable mode - leaving a lot of trash files in your PC.
+
+Some even require admin permissions to run (!!).
+
+### Debloats the driver install
+
+![Minimall install feature showcase](TNUC_minimal_install.png)
+
+Stops the NVIDIA spyware from being installed on your computer. You choose EXACTLY which components of the driver you actually want to install.
+
+### Multi Driver Support
+
+Provides an optional list of older compatible versions. Easily downgrade when facing bugs, or switch between Game Ready Drivers (GRD) and Studio (SD) drivers.
 
 ## How to use
 
