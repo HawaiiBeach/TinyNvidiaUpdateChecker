@@ -129,6 +129,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             List<NvidiaDriver> nvidiaDrivers = new();
             int recommendedDriverIdx = -1;
             JArray driversFound = GetDriversFromNvidiaAjax(gpu.pfId, osId);
+            if (driversFound == null || driversFound.Count == 0) return (null, null);
 
             // Driver type (upCRD)
             // - 0 is Game Ready Driver (GRD), and/or notebook, and/or quadro (RTX enterprise)
@@ -137,32 +138,38 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             for (int i = 0; i < driversFound.Count; i++)
             {
-                JObject driver = (JObject)driversFound[i]["downloadInfo"];
+                if (driversFound[i] is not JObject entry || entry["downloadInfo"] is not JObject driver) continue;
+                string version = driver["Version"]?.ToString();
+                string downloadUrl = driver["DownloadURL"]?.ToString();
+                if (!Version.TryParse(version, out _)
+                    || !Uri.TryCreate(downloadUrl, UriKind.Absolute, out Uri uri)
+                    || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
+                    || !DateTime.TryParse(driver["ReleaseDateTime"]?.ToString(), out DateTime releaseDate)) continue;
 
                 // To identify Quadro New Feature Branch (NFB) drivers, check if IsFeaturePreview is set to 1
                 bool isFeaturePreview = (driver["IsFeaturePreview"]?.ToString() ?? "0") == "1";
 
                 // Get driver type and label based on download URL + isFeaturePreview
-                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver["DownloadURL"].ToString(), isFeaturePreview);
+                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(downloadUrl, isFeaturePreview);
 
                 // Extract PDF URL from OtherNotes
-                string otherNotes = Uri.UnescapeDataString((string)driver["OtherNotes"] ?? string.Empty);
+                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"]?.ToString() ?? string.Empty);
                 string pdfUrl = ExtractPdfUrlFromNotes(otherNotes);
 
                 NvidiaDriver driverObj = new()
                 {
-                    title = $"{driver["Version"].ToString()} - Type: {driverTypeLabel}",
-                    version = driver["Version"].ToString(),
+                    title = $"{version} - Type: {driverTypeLabel}",
+                    version = version,
                     type = driverTypeKey,
                     typeLabel = driverTypeLabel,
-                    downloadUrl = driver["DownloadURL"].ToString(),
+                    downloadUrl = downloadUrl,
                     pdfUrl = pdfUrl,
-                    fileSizeEst = driver["DownloadURLFileSize"].ToString(),
-                    releaseDate = DateTime.Parse(driver["ReleaseDateTime"].ToString())
+                    fileSizeEst = driver["DownloadURLFileSize"]?.ToString() ?? "unknown",
+                    releaseDate = releaseDate
                 };
 
                 // Set recommended driver if unset, and the driver matches driverType
-                if (recommendedDriverIdx == -1 && driver["IsCRD"].ToString() == driverTypeInt.ToString())
+                if (recommendedDriverIdx == -1 && driver["IsCRD"]?.ToString() == driverTypeInt.ToString())
                 {
                     recommendedDriverIdx = i;
                     driverObj.recommended = true;
@@ -175,7 +182,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             // Get raw release notes
             JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
-            string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"].ToString());
+            string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"]?.ToString() ?? string.Empty);
 
             // Load release notes
             HtmlAgilityPack.HtmlDocument htmlDocument = new();
@@ -244,9 +251,10 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 JObject nvResponse = JObject.Parse(response);
 
                 // Success is count drivers found
-                if ((int)nvResponse["Success"] > 0)
+                if (int.TryParse(nvResponse["Success"]?.ToString(), out int count) && count > 0
+                    && nvResponse["IDS"] is JArray { Count: > 0 } drivers)
                 {
-                    return (JArray)nvResponse["IDS"];
+                    return drivers;
                 }
                 else
                 {
@@ -272,7 +280,6 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 MainConsole.WriteLine(ex.ToString());
             }
 
-            MainConsole.callExit(1);
             return null;
         }
 

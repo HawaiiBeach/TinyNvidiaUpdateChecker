@@ -46,10 +46,11 @@ public class NewMetadataHandler
         {
             string jsonString = MainConsole.SendGetRequest(MainConsole.experimentalGpuMetadataRepo);
             _combinedGpuData = JsonSerializer.Deserialize<CombinedGpuData>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return true;
+            return _combinedGpuData?.devices != null && _combinedGpuData.versions != null;
         }
         catch
         {
+            _combinedGpuData = null;
             return false;
         }
     }
@@ -72,6 +73,7 @@ public class NewMetadataHandler
     private static bool IsMobileGpuIndex(int gpuIndex)
     {
         return _combinedGpuData?.devices?.TryGetValue(gpuIndex.ToString(), out GpuDevice device) == true
+            && device != null
             && (device.name?.Contains("Laptop", StringComparison.OrdinalIgnoreCase) == true
                 || device.name?.Contains("Notebook", StringComparison.OrdinalIgnoreCase) == true
                 || device.name?.Contains("Max-Q", StringComparison.OrdinalIgnoreCase) == true);
@@ -101,9 +103,14 @@ public class NewMetadataHandler
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
                 if (driverTypeKey == "unknown") continue;
 
-                // For some reason, expermiental metadata repo is matching desktop GPUs with notebook drivers
-                // Filter out notebook drivers for desktop GPUs
-                if (!isMobileGpu && driverTypeKey == "notebook") continue;
+                // Studio metadata does not distinguish platforms; require explicit package tokens.
+                string[] packageTokens = (driver.key ?? string.Empty).Split('-');
+                bool notebookPackage = driverTypeKey == "notebook"
+                    || packageTokens.Contains("notebook", StringComparer.OrdinalIgnoreCase);
+                bool desktopPackage = driverTypeKey == "grd"
+                    || packageTokens.Contains("desktop", StringComparer.OrdinalIgnoreCase);
+                if (isMobileGpu ? !notebookPackage : !desktopPackage || notebookPackage) continue;
+                if (string.IsNullOrWhiteSpace(driver.key) || !Version.TryParse(driver.version, out _)) continue;
 
                 string downloadUrl = $"https://international.download.nvidia.com/Windows/{driver.version}/{driver.key}.exe";
 
@@ -120,8 +127,9 @@ public class NewMetadataHandler
                 nvidiaDrivers.Add(driverObj);
 
                 // Compares the most up to date version, and system compatible (GRD/SD/Notebook), then sets it as recommended
-                bool matchesPreference = string.Equals(driverTypeKey, driverType, StringComparison.OrdinalIgnoreCase)
-                    || (preferNotebook && driverTypeKey == "notebook");
+                bool matchesPreference = preferNotebook
+                    ? string.Equals(driverType, "grd", StringComparison.OrdinalIgnoreCase) && driverTypeKey == "notebook"
+                    : string.Equals(driverTypeKey, driverType, StringComparison.OrdinalIgnoreCase);
                 if (matchesPreference && Version.TryParse(driver.version, out Version currentParsedVersion))
                 {
 
@@ -143,7 +151,7 @@ public class NewMetadataHandler
         }
 
         // Mark the latest matching driver found as recommended
-        NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver ?? nvidiaDrivers.LastOrDefault();
+        NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver;
         if (recommendedDriver != null) recommendedDriver.recommended = true;
 
         // Reverse list, because this metadata is sorted from oldest to newest, and we want the newest first

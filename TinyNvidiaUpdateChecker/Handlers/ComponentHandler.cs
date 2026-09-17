@@ -30,16 +30,18 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 if (nviFile != null)
                 {
                     try { doc.Load(nviFile); } catch { continue; }
+                    if (doc.DocumentElement == null
+                        || !string.Equals(doc.DocumentElement.Name, "nvi", StringComparison.OrdinalIgnoreCase)) continue;
                     string name = Path.GetFileName(dir);
                     string label = FindNviLabel(doc, name);
 
                     // Get version
-                    string version = doc.SelectSingleNode("nvi/@version | nvi/@Version")?.Value ?? "Unknown";
+                    string version = doc.DocumentElement.SelectSingleNode("@version | @Version")?.Value ?? "Unknown";
 
                     // If version is placeholder
                     if (version.ToLower() == "${{version}}")
                     {
-                        version = doc.SelectSingleNode("nvi/strings/string[@name='version' or @name='Version']/@value")?.Value ?? "Unknown";
+                        version = doc.DocumentElement.SelectSingleNode("strings/string[@name='version' or @name='Version']/@value")?.Value ?? "Unknown";
                     }
 
                     componentLabel[name] = label;
@@ -71,7 +73,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             try
             {
-                XmlNodeList dependenciesNode = doc.SelectNodes("nvi/dependencies");
+                XmlNodeList dependenciesNode = doc.DocumentElement.SelectNodes("dependencies");
 
                 foreach (XmlNode packages in dependenciesNode)
                 {
@@ -118,7 +120,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             try
             {
-                XmlNodeList stringsNode = doc.SelectNodes("nvi/strings/localized");
+                XmlNodeList stringsNode = doc.DocumentElement.SelectNodes("strings/localized");
 
                 foreach (XmlNode node in stringsNode)
                 {
@@ -136,7 +138,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     }
                 }
 
-                stringsNode = doc.SelectNodes("nvi/strings");
+                stringsNode = doc.DocumentElement.SelectNodes("strings");
                 foreach (XmlNode node in stringsNode)
                 {
                     XmlElement element = (XmlElement)node;
@@ -172,7 +174,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
 
             foreach (string file in Directory.GetFiles(dir)) {
-                if (file.EndsWith(".nvi")) {
+                if (string.Equals(Path.GetExtension(file), ".nvi", StringComparison.OrdinalIgnoreCase)) {
                     return file;
                 }
             }

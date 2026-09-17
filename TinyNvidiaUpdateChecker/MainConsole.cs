@@ -712,8 +712,9 @@ namespace TinyNvidiaUpdateChecker
         /// <param name="url">URL path for download</param>
         /// <param name="path">Absolute file path</param>
         /// <returns></returns>
-        async public static Task HandleDownload(string url, string path, EventHandler<float> progressHandle = null)
+        async public static Task HandleDownload(string url, string path, EventHandler<float> progressHandle = null, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // if a partial file download exists, delete it now
             if (File.Exists(path)) {
                 File.Delete(path);
@@ -741,9 +742,10 @@ namespace TinyNvidiaUpdateChecker
 
             try {
                 using (FileStream file = new(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, 1, FileOptions.Asynchronous))  {
-                    await httpClient.DownloadDataAsync(url, file, progress).ConfigureAwait(false);
+                    await httpClient.DownloadDataAsync(url, file, progress, cancellationToken).ConfigureAwait(false);
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 File.Move(path, path[..^5], true); // rename back
                 if (progressHandle == null ) { progressBar.Dispose(); }
             } catch {
@@ -794,150 +796,172 @@ namespace TinyNvidiaUpdateChecker
                 throw new IOException($"Extraction folder is not empty: {extractedPath}. Select an empty folder or remove the old extraction first.");
             Directory.CreateDirectory(extractedPath);
 
-            LibraryFile libraryFile = LibraryHandler.EvaluateLibrary()
-                ?? throw new InvalidOperationException("No supported archiver was found. Install 7-Zip, WinRAR, or NanaZip.");
-            using var process = new Process();
-            LibraryHandler.Library library = libraryFile.LibraryName();
-
-            // Extract full driver to then analyze
-            if (library == LibraryHandler.Library.WINRAR) {
-                process.StartInfo = new ProcessStartInfo {
-                    FileName = libraryFile.GetInstallationDirectory() + "winrar.exe",
-                    WorkingDirectory = savePath,
-                    Arguments = $"x -y \"{fullInstallerPath}\" \"{extractedPath}{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}\"",
-                    UseShellExecute = false
-                };
-
-                if (silent) process.StartInfo.Arguments += " -ibck";
-            } else if (library == LibraryHandler.Library.SEVENZIP) {
-                process.StartInfo = new ProcessStartInfo {
-                    WorkingDirectory = savePath,
-                    Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                if (silent) {
-                    process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7z.exe";
-                } else {
-                    process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7zG.exe";
-                }
-            } else if (library == LibraryHandler.Library.NANAZIP) {
-                process.StartInfo = new ProcessStartInfo {
-                    WorkingDirectory = savePath,
-                    Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                if (silent) {
-                    process.StartInfo.FileName = "NanaZipC.exe";
-                } else {
-                    process.StartInfo.FileName = "NanaZipG.exe";
-                }
-            }
-
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.Start();
-            // Drain both pipes while the archiver runs, not after WaitForExit.
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
-            Task<string> errorTask = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
-            string output = outputTask.GetAwaiter().GetResult();
-            string error = errorTask.GetAwaiter().GetResult();
-            if (process.ExitCode != 0 || !Directory.Exists(extractedPath)
-                || Directory.GetFileSystemEntries(extractedPath).Length == 0)
-                throw new IOException($"Archiver: {process.StartInfo.FileName}\nExit code: {process.ExitCode}\nExtraction folder: {extractedPath}\n{error}\n{output}");
-
-            // Analyze with ComponentHandler
-            List<Component> driverComponents = ComponentHandler.ParseComponentData(extractedPath);
-            if (driverComponents.Count == 0 || !File.Exists(Path.Combine(extractedPath, "setup.exe"))
-                || !File.Exists(Path.Combine(extractedPath, "setup.cfg")))
-                throw new InvalidDataException($"No usable NVIDIA installer was extracted to {extractedPath}.\n{error}\n{output}");
-
-            // If config entry exists, show "Use last used components" button
-            string configComponentsString = ConfigurationHandler.ReadSetting("Minimal install components", null, false);
-
-            using ComponentChooserForm componentForm = new();
-
-            // Open component form
-            // If quiet mode + configComponents exists, it will not show dialog, and will use configComponents
-            (List<string> chosenComponents, bool saveConfig) =
-                componentForm.OpenForm(driverComponents, configComponentsString);
-
-            // Save latest used components to config file if user selected "Save selection"
-            if (saveConfig) {
-                ConfigurationHandler.SetSetting("Minimal install components", string.Join(", ", chosenComponents));
-            }
-
-            string[] extractFiles = [.. chosenComponents, "NVI2", "EULA.txt", "license.txt", "ListDevices.txt", "setup.cfg", "setup.exe"];
-
-            foreach (string file in extractFiles)
+            try
             {
-                string destination = Path.Combine(savePath, file);
-                if (File.Exists(destination) || Directory.Exists(destination))
-                    throw new IOException($"Extraction destination already exists: {destination}. Select an empty folder.");
-            }
+                LibraryFile libraryFile = LibraryHandler.EvaluateLibrary()
+                    ?? throw new InvalidOperationException("No supported archiver was found. Install 7-Zip, WinRAR, or NanaZip.");
+                using var process = new Process();
+                LibraryHandler.Library library = libraryFile.LibraryName();
 
-            foreach (string file in extractFiles) {
-                string filePath = Path.Combine(savePath, "temp", file);
+                // Extract full driver to then analyze
+                if (library == LibraryHandler.Library.WINRAR) {
+                    process.StartInfo = new ProcessStartInfo {
+                        FileName = libraryFile.GetInstallationDirectory() + "winrar.exe",
+                        WorkingDirectory = savePath,
+                        Arguments = $"x -y \"{fullInstallerPath}\" \"{extractedPath}{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}\"",
+                        UseShellExecute = false
+                    };
 
-                if (File.Exists(filePath))
-                {
-                    string destinationFilePath = Path.Combine(savePath, file);
-                    File.Move(filePath, destinationFilePath);
-                }
-                else if (Directory.Exists(filePath))
-                {
-                    string destinationDirectoryPath = Path.Combine(savePath, Path.GetFileName(filePath));
-                    Directory.Move(filePath, destinationDirectoryPath);
-                }
-            }
+                    if (silent) process.StartInfo.Arguments += " -ibck";
+                } else if (library == LibraryHandler.Library.SEVENZIP) {
+                    process.StartInfo = new ProcessStartInfo {
+                        WorkingDirectory = savePath,
+                        Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
 
-            if (Directory.Exists(extractedPath))
-                Directory.Delete(extractedPath, true);
+                    if (silent) {
+                        process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7z.exe";
+                    } else {
+                        process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7zG.exe";
+                    }
+                } else if (library == LibraryHandler.Library.NANAZIP) {
+                    process.StartInfo = new ProcessStartInfo {
+                        WorkingDirectory = savePath,
+                        Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
 
-            // Remove new EULA files from the installer config, or else the installer throws error codes
-            // author https://github.com/cywq
-            var xmlDocument = new XmlDocument();
-            string setupFile = Path.Combine(savePath, "setup.cfg");
-            string[] linesToDelete = { "${{EulaHtmlFile}}", "${{FunctionalConsentFile}}", "${{PrivacyPolicyFile}}" };
-
-            xmlDocument.Load(setupFile);
-
-            foreach (var line in linesToDelete) {
-                var node = (XmlElement)xmlDocument.DocumentElement.SelectSingleNode($"/setup/manifest/file[@name=\"{line}\"]");
-
-                if (node != null) {
-                    node.ParentNode.RemoveChild(node);
-                }
-            }
-
-            xmlDocument.Save(setupFile);
-
-            // Disable telemetry and installer ads
-            var presentationsXml = new XmlDocument();
-            string presentationsFile = Path.Combine(savePath, "NVI2", "presentations.cfg");
-            string[] urlsToEmpty = { "ProgressPresentationUrl", "ProgressPresentationSelectedPackageUrl" };
-
-            if (File.Exists(presentationsFile)) {
-                presentationsXml.Load(presentationsFile);
-
-                foreach (var urlName in urlsToEmpty) {
-                    var urlNode = (XmlElement)presentationsXml.DocumentElement.SelectSingleNode($"/presentations/properties/string[@name=\"{urlName}\"]");
-
-                    if (urlNode != null) {
-                        urlNode.SetAttribute("value", "");
+                    if (silent) {
+                        process.StartInfo.FileName = "NanaZipC.exe";
+                    } else {
+                        process.StartInfo.FileName = "NanaZipG.exe";
                     }
                 }
 
-                presentationsXml.Save(presentationsFile);
-            }
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.Start();
+                // Drain both pipes while the archiver runs, not after WaitForExit.
+                Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+                Task<string> errorTask = process.StandardError.ReadToEndAsync();
+                if (!process.WaitForExit(TimeSpan.FromMinutes(5)))
+                {
+                    process.Kill(true);
+                    process.WaitForExit(TimeSpan.FromSeconds(10));
+                    throw new TimeoutException("Driver extraction exceeded the five-minute timeout.");
+                }
+                if (!Task.WhenAll(outputTask, errorTask).Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException("Archiver output streams did not close after extraction.");
+                string output = outputTask.GetAwaiter().GetResult();
+                string error = errorTask.GetAwaiter().GetResult();
+                if (process.ExitCode != 0 || !Directory.Exists(extractedPath)
+                    || Directory.GetFileSystemEntries(extractedPath).Length == 0)
+                    throw new IOException($"Archiver: {process.StartInfo.FileName}\nExit code: {process.ExitCode}\nExtraction folder: {extractedPath}\n{error}\n{output}");
 
-            Write("OK!");
-            WriteLine();
-            return extractFiles;
+                // Analyze with ComponentHandler
+                List<Component> driverComponents = ComponentHandler.ParseComponentData(extractedPath);
+                if (driverComponents.Count == 0 || !File.Exists(Path.Combine(extractedPath, "setup.exe"))
+                    || !File.Exists(Path.Combine(extractedPath, "setup.cfg")))
+                    throw new InvalidDataException($"No usable NVIDIA installer was extracted to {extractedPath}.\n{error}\n{output}");
+
+                // If config entry exists, show "Use last used components" button
+                string configComponentsString = ConfigurationHandler.ReadSetting("Minimal install components", null, false);
+
+                using ComponentChooserForm componentForm = new();
+
+                // Open component form
+                // If quiet mode + configComponents exists, it will not show dialog, and will use configComponents
+                (List<string> chosenComponents, bool saveConfig) =
+                    componentForm.OpenForm(driverComponents, configComponentsString);
+
+                // Save latest used components to config file if user selected "Save selection"
+                if (saveConfig) {
+                    ConfigurationHandler.SetSetting("Minimal install components", string.Join(", ", chosenComponents));
+                }
+
+                string[] extractFiles = [.. chosenComponents, "NVI2", "EULA.txt", "license.txt", "ListDevices.txt", "setup.cfg", "setup.exe"];
+
+                foreach (string file in extractFiles)
+                {
+                    string destination = Path.Combine(savePath, file);
+                    if (File.Exists(destination) || Directory.Exists(destination))
+                        throw new IOException($"Extraction destination already exists: {destination}. Select an empty folder.");
+                }
+
+                foreach (string file in extractFiles) {
+                    string filePath = Path.Combine(savePath, "temp", file);
+
+                    if (File.Exists(filePath))
+                    {
+                        string destinationFilePath = Path.Combine(savePath, file);
+                        File.Move(filePath, destinationFilePath);
+                    }
+                    else if (Directory.Exists(filePath))
+                    {
+                        string destinationDirectoryPath = Path.Combine(savePath, Path.GetFileName(filePath));
+                        Directory.Move(filePath, destinationDirectoryPath);
+                    }
+                }
+
+                if (Directory.Exists(extractedPath))
+                    Directory.Delete(extractedPath, true);
+
+                // Remove new EULA files from the installer config, or else the installer throws error codes
+                // author https://github.com/cywq
+                var xmlDocument = new XmlDocument();
+                string setupFile = Path.Combine(savePath, "setup.cfg");
+                string[] linesToDelete = { "${{EulaHtmlFile}}", "${{FunctionalConsentFile}}", "${{PrivacyPolicyFile}}" };
+
+                xmlDocument.Load(setupFile);
+
+                foreach (var line in linesToDelete) {
+                    var node = (XmlElement)xmlDocument.DocumentElement.SelectSingleNode($"/setup/manifest/file[@name=\"{line}\"]");
+
+                    if (node != null) {
+                        node.ParentNode.RemoveChild(node);
+                    }
+                }
+
+                xmlDocument.Save(setupFile);
+
+                // Disable telemetry and installer ads
+                var presentationsXml = new XmlDocument();
+                string presentationsFile = Path.Combine(savePath, "NVI2", "presentations.cfg");
+                string[] urlsToEmpty = { "ProgressPresentationUrl", "ProgressPresentationSelectedPackageUrl" };
+
+                if (File.Exists(presentationsFile)) {
+                    presentationsXml.Load(presentationsFile);
+
+                    foreach (var urlName in urlsToEmpty) {
+                        var urlNode = (XmlElement)presentationsXml.DocumentElement.SelectSingleNode($"/presentations/properties/string[@name=\"{urlName}\"]");
+
+                        if (urlNode != null) {
+                            urlNode.SetAttribute("value", "");
+                        }
+                    }
+
+                    presentationsXml.Save(presentationsFile);
+                }
+
+                Write("OK!");
+                WriteLine();
+                return extractFiles;
+            }
+            finally
+            {
+                // The stale-folder guard runs before this scope: never remove pre-existing content.
+                try
+                {
+                    if (Directory.Exists(extractedPath)) Directory.Delete(extractedPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Could not clean extraction folder {extractedPath}: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>

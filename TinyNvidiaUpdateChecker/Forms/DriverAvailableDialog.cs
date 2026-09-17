@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TinyNvidiaUpdateChecker.Forms;
 using TinyNvidiaUpdateChecker.Handlers;
@@ -165,19 +166,31 @@ namespace TinyNvidiaUpdateChecker
 
         private void versionBox_SelectedIndexChanged(object sender, EventArgs e) { VersionBoxChangedIndex(); }
 
-        private void VersionBoxChangedIndex()
+        private async void VersionBoxChangedIndex()
         {
             // Find selected driver based on uiIdx
             selectedDriver = nvidiaDrivers.Find(x => x.uiIdx == versionBox.SelectedIndex);
             if (selectedDriver == null) return;
 
+            NvidiaDriver driver = selectedDriver;
+            releasedLabel.Text = "Released: unknown";
+            sizeLabel.Text = $"Size: {driver.fileSizeEst}";
             // If selected driver is missing release date & file size (caused by experimental metadata)
             if (selectedDriver.releaseDate == DateTime.MinValue)
             {
-                (long fileSize, selectedDriver.releaseDate) = MainConsole.GetDriverMetadataFromNvidia(selectedDriver.downloadUrl);
-                double mibFileSize = Math.Round((fileSize / 1024f) / 1024f);
-                selectedDriver.fileSizeEst = fileSize >= 0 ? mibFileSize + " MiB" : "unknown";
+                try
+                {
+                    (long fileSize, DateTime releaseDate) = await Task.Run(() => MainConsole.GetDriverMetadataFromNvidia(driver.downloadUrl));
+                    driver.releaseDate = releaseDate;
+                    driver.fileSizeEst = fileSize >= 0 ? Math.Round(fileSize / 1024d / 1024d) + " MiB" : "unknown";
+                }
+                catch (Exception ex)
+                {
+                    driver.fileSizeEst = "unknown";
+                    Debug.WriteLine($"Driver metadata unavailable: {ex.Message}");
+                }
             }
+            if (IsDisposed || Disposing || selectedDriver != driver) return;
 
             // Date
             int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates
