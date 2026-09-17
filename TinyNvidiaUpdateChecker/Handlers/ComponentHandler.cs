@@ -20,7 +20,10 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 return components;
             }
 
-            foreach (string dir in Directory.GetDirectories(driverRootPath))
+            string[] directories = Directory.GetDirectories(driverRootPath);
+            if (directories.Length == 0) return components;
+
+            foreach (string dir in directories)
             {
                 string nviFile = FindNviFile(dir);
 

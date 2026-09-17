@@ -334,7 +334,8 @@ namespace TinyNvidiaUpdateChecker
                 string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
 
                 // Add minimal temp files
-                tempFiles.AddRange(minimalInstallTempFiles);
+                minimalInstaller = minimalInstallTempFiles != null;
+                if (minimalInstaller) tempFiles.AddRange(minimalInstallTempFiles);
             }
 
             // Show installer
@@ -604,7 +605,8 @@ namespace TinyNvidiaUpdateChecker
                 }
 
                 if (ConfigurationHandler.ReadSettingBool("Minimal install")) {
-                    MakeInstaller(false, savePath, driverFileName);
+                    if (MakeInstaller(false, savePath, driverFileName) == null)
+                        ReadyInstallForm.handleInstall(Path.Combine(savePath, driverFileName), false, [driverFileName], true);
                 }
             } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALL) {
                 DownloadDriverQuiet(selectedVersion, confirmDL);
@@ -694,7 +696,8 @@ namespace TinyNvidiaUpdateChecker
                 string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
 
                 // Add minimal temp files
-                tempFiles.AddRange(minimalInstallTempFiles);
+                minimalInstaller = minimalInstallTempFiles != null;
+                if (minimalInstaller) tempFiles.AddRange(minimalInstallTempFiles);
             }
 
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
@@ -755,10 +758,44 @@ namespace TinyNvidiaUpdateChecker
         /// </summary>
         private static string[] MakeInstaller(bool silent, string savePath, string fileName)
         {
+            try
+            {
+                return MakeInstallerCore(silent, savePath, fileName);
+            }
+            catch (Exception ex)
+            {
+                string message = $"Driver extraction failed: {ex.Message}";
+                Console.Error.WriteLine(message);
+                // Download confirmation is not consent to install additional components.
+                if (!silent && !confirmDL && MessageBox.Show(
+                    message + "\n\nUse the original full installer instead? This will not use your minimal component selection.",
+                    "TinyNvidiaUpdateChecker", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    return null;
+
+                callExit(1);
+                return null;
+            }
+        }
+
+        private static string[] MakeInstallerCore(bool silent, string savePath, string fileName)
+        {
             WriteLine();
             Write("Extracting drivers . . . ");
 
-            LibraryFile libraryFile = LibraryHandler.EvaluateLibrary();
+            savePath = Path.GetFullPath(savePath);
+            string extractedPath = Path.Combine(savePath, "temp");
+            string fullInstallerPath = Path.Combine(savePath, fileName);
+            if (!File.Exists(fullInstallerPath) || new FileInfo(fullInstallerPath).Length < 10L * 1024 * 1024)
+                throw new FileNotFoundException($"Driver installer file is missing or incomplete: {fullInstallerPath}");
+
+            // Never merge a new extraction with files from a previous attempt.
+            if (Directory.Exists(extractedPath) && Directory.GetFileSystemEntries(extractedPath).Length != 0)
+                throw new IOException($"Extraction folder is not empty: {extractedPath}. Select an empty folder or remove the old extraction first.");
+            Directory.CreateDirectory(extractedPath);
+
+            LibraryFile libraryFile = LibraryHandler.EvaluateLibrary()
+                ?? throw new InvalidOperationException("No supported archiver was found. Install 7-Zip, WinRAR, or NanaZip.");
             using var process = new Process();
             LibraryHandler.Library library = libraryFile.LibraryName();
 
@@ -767,7 +804,7 @@ namespace TinyNvidiaUpdateChecker
                 process.StartInfo = new ProcessStartInfo {
                     FileName = libraryFile.GetInstallationDirectory() + "winrar.exe",
                     WorkingDirectory = savePath,
-                    Arguments = @$"x {fileName} -y temp\",
+                    Arguments = $"x -y \"{fullInstallerPath}\" \"{extractedPath}{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}\"",
                     UseShellExecute = false
                 };
 
@@ -775,7 +812,7 @@ namespace TinyNvidiaUpdateChecker
             } else if (library == LibraryHandler.Library.SEVENZIP) {
                 process.StartInfo = new ProcessStartInfo {
                     WorkingDirectory = savePath,
-                    Arguments = $"x {fileName} -otemp -y",
+                    Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -788,7 +825,7 @@ namespace TinyNvidiaUpdateChecker
             } else if (library == LibraryHandler.Library.NANAZIP) {
                 process.StartInfo = new ProcessStartInfo {
                     WorkingDirectory = savePath,
-                    Arguments = $"x {fileName} -otemp -y",
+                    Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -800,52 +837,29 @@ namespace TinyNvidiaUpdateChecker
                 }
             }
 
-            try {
-                process.Start();
-                process.WaitForExit();
-            } catch (Exception ex) {
-                Write("ERROR!");
-                WriteLine();
-                WriteLine(ex.ToString());
-                callExit(1);
-            }
-
-            // If extraction was unsuccessful
-            if (process.ExitCode != 0)
-            {
-                Write("ERROR!");
-                WriteLine();
-                WriteLine("Driver extraction was canceled. Please rerun TNUC, and disable the Minimal Install feature if the issue doesn't go away.");
-                WriteLine();
-                WriteLine("Minimal Install info:");
-                WriteLine($"Library: {library}");
-                WriteLine($"Installation Directory: { libraryFile.GetInstallationDirectory()}");
-                WriteLine($"Exit code: {process.ExitCode}");
-                callExit(1);
-            }
-
-            string extractedPath = $"{savePath}temp";
-
-            // If extraction was successful (code 0), but extract directory was not found
-            if (!Directory.Exists(extractedPath)) {
-                Write("ERROR!");
-                WriteLine();
-                WriteLine("The driver archive extracted without error but no files were found. Please rerun TNUC, and disable the Minimal Install feature if the issue doesn't go away.");
-                WriteLine();
-                WriteLine("Minimal Install info:");
-                WriteLine($"Library: {library}");
-                WriteLine($"Installation Directory: {libraryFile.GetInstallationDirectory()}");
-                WriteLine($"Expected extract path: {extractedPath}");
-                callExit(1);
-            }
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.Start();
+            // Drain both pipes while the archiver runs, not after WaitForExit.
+            Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+            Task<string> errorTask = process.StandardError.ReadToEndAsync();
+            process.WaitForExit();
+            string output = outputTask.GetAwaiter().GetResult();
+            string error = errorTask.GetAwaiter().GetResult();
+            if (process.ExitCode != 0 || !Directory.Exists(extractedPath)
+                || Directory.GetFileSystemEntries(extractedPath).Length == 0)
+                throw new IOException($"Archiver: {process.StartInfo.FileName}\nExit code: {process.ExitCode}\nExtraction folder: {extractedPath}\n{error}\n{output}");
 
             // Analyze with ComponentHandler
             List<Component> driverComponents = ComponentHandler.ParseComponentData(extractedPath);
+            if (driverComponents.Count == 0 || !File.Exists(Path.Combine(extractedPath, "setup.exe"))
+                || !File.Exists(Path.Combine(extractedPath, "setup.cfg")))
+                throw new InvalidDataException($"No usable NVIDIA installer was extracted to {extractedPath}.\n{error}\n{output}");
 
             // If config entry exists, show "Use last used components" button
             string configComponentsString = ConfigurationHandler.ReadSetting("Minimal install components", null, false);
 
-            ComponentChooserForm componentForm = new();
+            using ComponentChooserForm componentForm = new();
 
             // Open component form
             // If quiet mode + configComponents exists, it will not show dialog, and will use configComponents
@@ -881,12 +895,13 @@ namespace TinyNvidiaUpdateChecker
                 }
             }
 
-            Directory.Delete(Path.Combine(savePath, "temp"), true);
+            if (Directory.Exists(extractedPath))
+                Directory.Delete(extractedPath, true);
 
             // Remove new EULA files from the installer config, or else the installer throws error codes
             // author https://github.com/cywq
             var xmlDocument = new XmlDocument();
-            string setupFile = savePath + "setup.cfg";
+            string setupFile = Path.Combine(savePath, "setup.cfg");
             string[] linesToDelete = { "${{EulaHtmlFile}}", "${{FunctionalConsentFile}}", "${{PrivacyPolicyFile}}" };
 
             xmlDocument.Load(setupFile);
