@@ -1,0 +1,59 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    env:
+      ACTIONS_FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Latest Changelog Entry
+        shell: pwsh
+        run: |
+          $content = Get-Content -Path "CHANGELOG.md" -Raw
+          if ($content -match '(?ms)(##\s*\[?v?[\d\.]+.*?)(?=\r?\n##\s|\Z)') {
+              $matches[1].Trim() | Out-File -FilePath "release_notes.md" -Encoding utf8
+          } else {
+              Write-Warning "Could not parse CHANGELOG.md."
+              New-Item -ItemType File -Path "release_notes.md" -Force
+          }
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish with Publish Profile
+        run: |
+          dotnet publish TinyNvidiaUpdateChecker/TinyNvidiaUpdateChecker.csproj `
+            -c Release `
+            /p:PublishProfile=FolderProfile `
+            -o ./publish
+
+      - name: Upload to VirusTotal
+        id: virustotal
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          files: |
+            ./publish/TinyNvidiaUpdateChecker.exe
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: TinyNvidiaUpdateChecker ${{ github.ref_name }}
+          files: ./publish/TinyNvidiaUpdateChecker.exe
+          tag_name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          draft: false

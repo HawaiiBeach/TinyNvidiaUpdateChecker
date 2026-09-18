@@ -137,7 +137,7 @@ namespace TinyNvidiaUpdateChecker
                     .OfType<ToolStripMenuItem>()
                     .FirstOrDefault(i => i.Bounds.Contains(contextMenuStrip1.PointToClient(Cursor.Position)));
 
-                if (hovered != null && hovered.Text == "Select download folder?")
+                if (hovered != null && hovered.Text == keepCheckBox.Text)
                 {
                     e.Cancel = true;
                 }

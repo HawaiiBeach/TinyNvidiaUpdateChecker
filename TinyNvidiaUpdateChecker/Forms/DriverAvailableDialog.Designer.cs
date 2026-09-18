@@ -210,7 +210,7 @@ namespace TinyNvidiaUpdateChecker
             // installItem
             // 
             installItem.Name = "installItem";
-            installItem.Size = new System.Drawing.Size(200, 22);
+            installItem.Size = new System.Drawing.Size(227, 22);
             installItem.Text = "Install Now >";
             installItem.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             installItem.Click += installItem_Click;
@@ -219,15 +219,16 @@ namespace TinyNvidiaUpdateChecker
             // 
             keepCheckBox.CheckOnClick = true;
             keepCheckBox.Name = "keepCheckBox";
-            keepCheckBox.Size = new System.Drawing.Size(200, 22);
-            keepCheckBox.Text = "Select download folder?";
+            keepCheckBox.Size = new System.Drawing.Size(227, 22);
+            keepCheckBox.Text = "Custom Download Location?";
+            keepCheckBox.ToolTipText = "Choose where downloaded drivers will be saved?";
             // 
             // contextMenuStrip1
             // 
             contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { installItem, keepCheckBox });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(201, 48);
+            contextMenuStrip1.Size = new System.Drawing.Size(228, 48);
             contextMenuStrip1.Closing += contextMenuStrip1_Closing;
             // 
             // DriverAvailableDialog

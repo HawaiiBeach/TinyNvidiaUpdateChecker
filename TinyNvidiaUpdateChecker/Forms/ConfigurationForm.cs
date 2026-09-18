@@ -10,6 +10,7 @@ namespace TinyNvidiaUpdateChecker.Forms
         private bool originalMinimalInstall;
         private bool originalExperimentalRepo;
         private string originalDriverType;
+        private bool originalAutostart;
 
         public ConfigurationForm()
         {
@@ -47,6 +48,18 @@ namespace TinyNvidiaUpdateChecker.Forms
                 restartRequired = true;
             }
 
+            if (autorunCheckBox.Checked != originalAutostart)
+            {
+                if (autorunCheckBox.Checked)
+                {
+                    AutostartHelper.RegisterTask();
+                }
+                else
+                {
+                    AutostartHelper.UnregisterTask();
+                }
+            }
+
             if (newDriverType != originalDriverType)
             {
                 ConfigurationHandler.SetSetting("Driver type", newDriverType);
@@ -71,9 +84,11 @@ namespace TinyNvidiaUpdateChecker.Forms
             originalDriverType = ConfigurationHandler.ReadSetting("Driver type");
             originalExperimentalRepo = ConfigurationHandler.ReadSetting("Use Experimental Metadata", null, false) == "true";
             string gpuId = ConfigurationHandler.ReadSetting("GPU ID", null, false);
+            originalAutostart = AutostartHelper.DoesTaskExists();
 
             updateCheckBox.Checked = originalCheckUpdates;
             experimentalCheckBox.Checked = originalExperimentalRepo;
+            autorunCheckBox.Checked = originalAutostart;
 
             if (LibraryHandler.EvaluateLibrary() != null)
             {
@@ -109,6 +124,28 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             TaskDialogButton[] buttons = [new("OK") { Tag = "ok" }];
             ConfigurationHandler.ShowButtonDialog("GPU choice has been reset", "Please restart for changes to take effect.", TaskDialogIcon.Information, buttons);
+        }
+
+        private void autorunCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autorunCheckBox.Checked)
+            {
+                DialogResult result = MessageBox.Show(
+                    "TNUC will run quietly each time you log in, only prompting to update " +
+                    "if a new driver is available.\n\n" +
+
+                    "It will run from this location:\n" +
+                    $"{Environment.ProcessPath}\n\n" +
+                    "If you move, rename, or delete the file, autorun will stop working " +
+                    "and you'll need to enable it again in the settings.\n\n" +
+                    "Is this a permanent location for TNUC? If so, enable autorun now?\n" +
+                    "(Don't forget to save for changes to apply)",
+                    "Enable Autorun?",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+                if (result == DialogResult.No) autorunCheckBox.Checked = false;
+            }
         }
     }
 }

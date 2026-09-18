@@ -13,18 +13,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed potential UI thread deadlock during download
 - Added 5-minute timeout and automatic cleanup for driver extraction
 - Added download cancellation when closing the download window
+- Fixed unified Studio driver selection on mobile GPUs and fallback when no driver is marked recommended
+- Hardened metadata fallbacks, version parsing, component parsing, archiver timeouts, and unattended execution
+
+## [1.28.0] - 2026-09-18
+### Added
+- One click autorun when user logs in, enable in configuration menu
+
+### Fixed
 - Fixed experimental metadata showing mobile drivers for desktop, and ignored 32-bit drivers from being shown
 - Proper Quadro / RTX Enterprise driver identification (does not apply to experimental metadata)
+- Made Driver Ready UI a bit wider
 
 ## [1.27.0] - 2026-09-15
 ### Added
-- Support for multiple drivers, prompt UI now shows all drivers available for the detected GPU, and allows you to choose which one to install
+- Support for multiple drivers, driver available menu now shows all drivers available for the detected GPU, and allows you to choose which one to install
 - Battery check before heavy operations (Author: @TanoINA)
 - Keep NVPCF and PPC components by default for notebook users in minimal installer (Author: @TanoINA)
 
 ### Fixed
+- Improved driver downloader with 1MB stream buffers, fixes download errors (Author: @TanoINA)
 - `--version` exit and guard Console.ReadKey against redirected shells (Author: @TanoINA)
-- Parallel segmented downloader with 1MB stream buffers, fixes networking issues (Author: @TanoINA)
 
 ### Changed
 - Improved driver available menu
