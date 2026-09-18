@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Fixed experimental metadata showing mobile drivers for desktop, and ignored 32-bit drivers from being shown
 - Proper Quadro / RTX Enterprise driver identification (does not apply to experimental metadata)
+- Made Driver Ready UI a bit wider
 
 ## [1.27.0] - 2026-09-15
 ### Added
