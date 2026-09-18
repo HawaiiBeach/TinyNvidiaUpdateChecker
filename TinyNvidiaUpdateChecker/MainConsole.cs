@@ -142,6 +142,16 @@ namespace TinyNvidiaUpdateChecker
         [STAThread]
         private static void Main(string[] args)
         {
+            try { Run(args); }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(debug ? ex.ToString() : $"TNUC could not continue: {ex.Message}");
+                Environment.ExitCode = 1;
+            }
+        }
+
+        private static void Run(string[] args)
+        {
             ApplicationConfiguration.Initialize();
             string message = $"TinyNvidiaUpdateChecker v{offlineVer}";
             
@@ -201,6 +211,7 @@ namespace TinyNvidiaUpdateChecker
 
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetGpuMetadata(gpu, driverType, useExperimental, false);
 
+            nvidiaDrivers?.RemoveAll(driver => driver == null);
             if (nvidiaDrivers == null || nvidiaDrivers.Count == 0)
             {
                 WriteLine("No compatible NVIDIA drivers were found.");
@@ -229,8 +240,13 @@ namespace TinyNvidiaUpdateChecker
 
             var updateAvailable = false;
 
-            Version.TryParse(OfflineGPUVersion, out Version vOffline);
-            Version.TryParse(OnlineGPUVersion, out Version vOnline);
+            if (!Version.TryParse(OfflineGPUVersion, out Version vOffline)
+                || !Version.TryParse(OnlineGPUVersion, out Version vOnline))
+            {
+                WriteLine("Unable to compare installed and available NVIDIA driver versions.");
+                callExit(1);
+                return;
+            }
             int comparison = vOffline.CompareTo(vOnline);
 
             if (comparison == 0) {
@@ -258,17 +274,28 @@ namespace TinyNvidiaUpdateChecker
             List<NvidiaDriver> nvidiaDrivers;
             string error, releaseNotes;
 
-            if (useExperimental)
+            try
             {
-                (nvidiaDrivers, error, releaseNotes) = NewMetadataHandler.GetDriverMetadata(gpu.deviceId, driverType);
+                if (useExperimental)
+                {
+                    (nvidiaDrivers, error, releaseNotes) = NewMetadataHandler.GetDriverMetadata(gpu.deviceId, driverType);
+                }
+                else
+                {
+                    OldMetadataHandler.PrepareCache();
+                    (nvidiaDrivers, error, releaseNotes) = OldMetadataHandler.GetDriverMetadata(gpu, driverType);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                OldMetadataHandler.PrepareCache();
-                (nvidiaDrivers, error, releaseNotes) = OldMetadataHandler.GetDriverMetadata(gpu, driverType);
+                nvidiaDrivers = null;
+                releaseNotes = null;
+                error = ex.Message;
+                if (debug) WriteLine($"Metadata lookup failed: {error}");
             }
 
-            if (nvidiaDrivers != null)
+            nvidiaDrivers?.RemoveAll(driver => driver == null);
+            if (nvidiaDrivers?.Count > 0)
             {
                 return (nvidiaDrivers, releaseNotes);
             }
@@ -755,11 +782,15 @@ namespace TinyNvidiaUpdateChecker
 
                 cancellationToken.ThrowIfCancellationRequested();
                 File.Move(path, path[..^5], true); // rename back
-                if (progressHandle == null ) { progressBar.Dispose(); }
             } catch {
-                File.Delete(path);
-                if (progressHandle == null) { progressBar.Dispose(); }
+                try { File.Delete(path); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Console.Error.WriteLine($"Could not delete partial download: {ex.Message}");
+                }
                 throw;
+            } finally {
+                progressBar?.Dispose();
             }
         }
 
@@ -874,6 +905,12 @@ namespace TinyNvidiaUpdateChecker
                 if (driverComponents.Count == 0 || !File.Exists(Path.Combine(extractedPath, "setup.exe"))
                     || !File.Exists(Path.Combine(extractedPath, "setup.cfg")))
                     throw new InvalidDataException($"No usable NVIDIA installer was extracted to {extractedPath}.\n{error}\n{output}");
+
+                // Validate the manifest before moving any files out of the temporary directory.
+                XmlDocument manifest = new();
+                manifest.Load(Path.Combine(extractedPath, "setup.cfg"));
+                if (manifest.DocumentElement?.Name != "setup")
+                    throw new InvalidDataException("The extracted setup.cfg is not a valid NVIDIA installer manifest.");
 
                 // If config entry exists, show "Use last used components" button
                 string configComponentsString = ConfigurationHandler.ReadSetting("Minimal install components", null, false);
@@ -997,7 +1034,13 @@ namespace TinyNvidiaUpdateChecker
                 WriteLine("Press any key to exit...");
             }
 
-            if (showUI && !noPrompt && !confirmDL && !Console.IsInputRedirected) Console.ReadKey(true);
+            if (showUI && !noPrompt && !confirmDL && Environment.UserInteractive
+                && !Console.IsInputRedirected && !Console.IsOutputRedirected)
+            {
+                try { Console.ReadKey(true); }
+                catch (InvalidOperationException) { }
+                catch (IOException) { }
+            }
             FreeConsole();
             Environment.Exit(exitNum);
         }

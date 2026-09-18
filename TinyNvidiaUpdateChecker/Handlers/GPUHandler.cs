@@ -78,6 +78,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                         }
 
                         string[] split = pnp.Split("&DEV_");
+                        if (split[0].Length < 4 || split[1].Length < 4) continue;
                         string vendorId = split[0][^4..].ToLower();
                         string deviceId = split[1][..4];
 

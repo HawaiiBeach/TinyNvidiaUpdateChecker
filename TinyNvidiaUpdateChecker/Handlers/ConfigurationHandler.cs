@@ -13,6 +13,9 @@ namespace TinyNvidiaUpdateChecker.Handlers
     /// </summary>
     class ConfigurationHandler
     {
+        private static bool CanPrompt => MainConsole.showUI && !MainConsole.confirmDL
+            && !MainConsole.noPrompt && !MainConsole.dryRun && Environment.UserInteractive
+            && !Console.IsInputRedirected && !Console.IsOutputRedirected;
 
         /// <summary>
         /// Configuration directory path, blueprint: <local-appdata><project-name>
@@ -142,8 +145,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine(ex.ToString());
                 Console.WriteLine();
                 Console.WriteLine("The config file has been wiped due to a possible syntax error, please run the application again and setup your values.");
-                if (MainConsole.showUI && !MainConsole.confirmDL && !MainConsole.noPrompt && !Console.IsInputRedirected)
-                    Console.ReadKey(true);
+                if (CanPrompt)
+                {
+                    try { Console.ReadKey(true); }
+                    catch (InvalidOperationException) { }
+                    catch (IOException) { }
+                }
                 Environment.Exit(1);
             }
         }
@@ -186,16 +193,22 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     break;
 
                 case "GPU ID":
-                    GPUSelectorForm gpuForm = new();
+                {
+                    if (!CanPrompt)
+                        throw new InvalidOperationException("Select a GPU interactively before running unattended.");
+                    using GPUSelectorForm gpuForm = new();
                     value = gpuForm.OpenForm(data);
                     break;
+                }
 
                 case "Minimal install components":
-                    ComponentChooserForm componentForm = new();
-                    List<string> components = componentForm.OpenForm(data);
+                {
+                    using ComponentChooserForm componentForm = new();
+                    (List<string> components, bool _) = componentForm.OpenForm((List<Component>)data);
                     string formattedComponents = string.Join(", ", components.ToArray());
                     value = formattedComponents;
                     break;
+                }
 
                 default:
                     MessageBox.Show($"Unknown key '{key}'", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -209,7 +222,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
         private static string SetupConfigYesNoMessagebox(string text, string[] values, string defaultValue)
         {
-            if (!MainConsole.confirmDL) {
+            if (CanPrompt) {
                 DialogResult dialogResult = MessageBox.Show(text, "TinyNvidiaUpdateChecker", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 return dialogResult == DialogResult.Yes ? values[0] : values[1];
             } else {
@@ -219,6 +232,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
         public static string ShowButtonDialog(string title, string text, TaskDialogIcon icon, TaskDialogButton[] buttonList)
         {
+            if (!CanPrompt) return buttonList[0].Tag?.ToString();
             var buttons = new TaskDialogButtonCollection();
 
             foreach (TaskDialogButton button in buttonList)
@@ -236,7 +250,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             };
 
             TaskDialogButton result = TaskDialog.ShowDialog(page);
-            return result.Tag.ToString();
+            return result?.Tag?.ToString() ?? buttonList[0].Tag?.ToString();
         }
 
         public static bool ReadSettingBool(string key, dynamic data = null, bool setupIfNotFound = true)

@@ -93,13 +93,17 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     };
 
                     process.Start();
-                    string exePath = process.GetMainModuleFileName();
-                    process.WaitForExit();
+                    if (!process.WaitForExit(TimeSpan.FromSeconds(10)))
+                    {
+                        process.Kill(entireProcessTree: true);
+                        process.WaitForExit(TimeSpan.FromSeconds(5));
+                        continue;
+                    }
 
                     if (process.ExitCode == 0)
                     {
-                        string directoryPath = Path.GetDirectoryName(exePath) + @"\";
-                        return new LibraryFile(directoryPath, entry.Value, true);
+                        // App execution aliases are resolved through PATH when extracting.
+                        return new LibraryFile(string.Empty, entry.Value, true);
                     }
                 }
                 catch { }

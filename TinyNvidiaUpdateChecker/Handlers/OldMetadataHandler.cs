@@ -38,10 +38,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             if (!success) return (null, "Could not lookup GPU in ZenitH-AT's nvidia-data repo", null);
             int osId = GetOsId();
+            if (osId == 0) return (null, "No matching operating system was found in the metadata.", null);
 
             // Use AJAX API
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetDriverInfo(gpu, osId, driverType);
-            if (nvidiaDrivers == null) return (null, "No driver matches the configured driver family.", null);
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "No driver matches the configured driver family.", null);
 
             // Return found
             return (nvidiaDrivers, null, releaseNotes);
@@ -328,6 +329,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
         public static int GetOsId()
         {
+            if (cachedOSData == null) return 0;
             // Get operating system ID
             string osVersion = $"{Environment.OSVersion.Version.Major}.{Environment.OSVersion.Version.Minor}";
             string osBit = Environment.Is64BitOperatingSystem ? "64" : "32";
@@ -337,7 +339,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 foreach (OSClass os in cachedOSData)
                 {
-                    if (Regex.IsMatch(os.name, "Windows 11"))
+                    if (os?.name != null && Regex.IsMatch(os.name, "Windows 11"))
                     {
                         osId = os.id;
                         break;
@@ -348,7 +350,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 foreach (OSClass os in cachedOSData)
                 {
-                    if (os.code == osVersion && Regex.IsMatch(os.name, osBit))
+                    if (os?.name != null && os.code == osVersion && Regex.IsMatch(os.name, osBit))
                     {
                         osId = os.id;
                         break;
@@ -363,7 +365,6 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 MainConsole.WriteLine("No NVIDIA driver was found for this operating system configuration. Make sure TNUC is updated.");
                 MainConsole.WriteLine();
                 MainConsole.WriteLine($"osVersion: {osVersion}");
-                MainConsole.callExit(1);
             }
 
             return osId;
