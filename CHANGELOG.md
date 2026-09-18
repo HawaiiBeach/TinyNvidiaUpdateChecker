@@ -12,13 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.27.0] - 2026-09-15
 ### Added
-- Support for multiple drivers, prompt UI now shows all drivers available for the detected GPU, and allows you to choose which one to install
+- Support for multiple drivers, driver available menu now shows all drivers available for the detected GPU, and allows you to choose which one to install
 - Battery check before heavy operations (Author: @TanoINA)
 - Keep NVPCF and PPC components by default for notebook users in minimal installer (Author: @TanoINA)
 
 ### Fixed
+- Improved driver downloader with 1MB stream buffers, fixes download errors (Author: @TanoINA)
 - `--version` exit and guard Console.ReadKey against redirected shells (Author: @TanoINA)
-- Parallel segmented downloader with 1MB stream buffers, fixes networking issues (Author: @TanoINA)
 
 ### Changed
 - Improved driver available menu
