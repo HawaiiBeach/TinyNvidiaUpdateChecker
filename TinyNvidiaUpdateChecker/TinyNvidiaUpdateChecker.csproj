@@ -31,5 +31,6 @@
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Management" Version="10.0.10" />
+    <PackageReference Include="TaskScheduler" Version="2.12.2" />
   </ItemGroup>
 </Project>

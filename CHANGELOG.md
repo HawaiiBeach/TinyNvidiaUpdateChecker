@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.28.0] - 2026-09-18
+### Added
+- One click autorun when user logs in, enable in configuration menu
+
 ### Fixed
 - Fixed experimental metadata showing mobile drivers for desktop, and ignored 32-bit drivers from being shown
 - Proper Quadro / RTX Enterprise driver identification (does not apply to experimental metadata)
