@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- Fixed driver extraction failure on paths containing spaces or Unicode characters (#276)
+- Fixed notebook driver recommendation for mobile GPUs configured with Game Ready Drivers
+- Fixed segmented downloader file sharing mode to enable full parallel downloads
+- Fixed crash when requested driver family is absent from API results
+- Fixed potential UI thread deadlock during download
+- Added 5-minute timeout and automatic cleanup for driver extraction
+- Added download cancellation when closing the download window
 - Fixed experimental metadata showing mobile drivers for desktop, and ignored 32-bit drivers from being shown
 - Proper Quadro / RTX Enterprise driver identification (does not apply to experimental metadata)
 
