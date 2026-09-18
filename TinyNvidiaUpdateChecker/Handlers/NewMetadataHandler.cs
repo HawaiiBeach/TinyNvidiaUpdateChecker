@@ -103,13 +103,16 @@ public class NewMetadataHandler
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
                 if (driverTypeKey == "unknown") continue;
 
-                // Studio metadata does not distinguish platforms; require explicit package tokens.
-                string[] packageTokens = (driver.key ?? string.Empty).Split('-');
-                bool notebookPackage = driverTypeKey == "notebook"
-                    || packageTokens.Contains("notebook", StringComparer.OrdinalIgnoreCase);
-                bool desktopPackage = driverTypeKey == "grd"
-                    || packageTokens.Contains("desktop", StringComparer.OrdinalIgnoreCase);
-                if (isMobileGpu ? !notebookPackage : !desktopPackage || notebookPackage) continue;
+                // Studio drivers use unified desktop/notebook packages; GPU support was checked above.
+                if (driverTypeKey != "sd")
+                {
+                    string[] packageTokens = (driver.key ?? string.Empty).Split('-');
+                    bool notebookPackage = driverTypeKey == "notebook"
+                        || packageTokens.Contains("notebook", StringComparer.OrdinalIgnoreCase);
+                    bool desktopPackage = driverTypeKey == "grd"
+                        || packageTokens.Contains("desktop", StringComparer.OrdinalIgnoreCase);
+                    if (isMobileGpu ? !notebookPackage : !desktopPackage || notebookPackage) continue;
+                }
                 if (string.IsNullOrWhiteSpace(driver.key) || !Version.TryParse(driver.version, out _)) continue;
 
                 string downloadUrl = $"https://international.download.nvidia.com/Windows/{driver.version}/{driver.key}.exe";
@@ -152,6 +155,11 @@ public class NewMetadataHandler
 
         // Mark the latest matching driver found as recommended
         NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver;
+        // Metadata is ordered oldest to newest; fall back when no driver matches the preference.
+        if (recommendedDriver == null && nvidiaDrivers.Count > 0)
+        {
+            recommendedDriver = nvidiaDrivers.LastOrDefault();
+        }
         if (recommendedDriver != null) recommendedDriver.recommended = true;
 
         // Reverse list, because this metadata is sorted from oldest to newest, and we want the newest first

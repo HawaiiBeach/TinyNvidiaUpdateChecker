@@ -201,8 +201,16 @@ namespace TinyNvidiaUpdateChecker
 
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetGpuMetadata(gpu, driverType, useExperimental, false);
 
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0)
+            {
+                WriteLine("No compatible NVIDIA drivers were found.");
+                callExit(1);
+                return;
+            }
+
             // Get the latest driver (recommended)
-            NvidiaDriver latestDriver = nvidiaDrivers.Find(x => x.recommended);
+            NvidiaDriver latestDriver = nvidiaDrivers.Find(x => x.recommended) ?? nvidiaDrivers[0];
+            latestDriver.recommended = true;
             latestDriver.title = $"[Latest] {latestDriver.title}";
 
             OfflineGPUVersion = gpu.version;
