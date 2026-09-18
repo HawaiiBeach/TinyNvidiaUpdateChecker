@@ -25,6 +25,7 @@ jobs:
           if ($content -match '(?ms)(##\s*\[?v?[\d\.]+.*?)(?=\r?\n##\s|\Z)') {
               $matches[1].Trim() | Out-File -FilePath "release_notes.md" -Encoding utf8
           } else {
+              Write-Warning "Could not parse CHANGELOG.md."
               New-Item -ItemType File -Path "release_notes.md" -Force
           }
 
@@ -51,6 +52,7 @@ jobs:
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
+          name: TinyNvidiaUpdateChecker ${{ github.ref_name }}
           files: ./publish/TinyNvidiaUpdateChecker.exe
           tag_name: ${{ github.ref_name }}
           body_path: release_notes.md
