@@ -32,6 +32,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
             string message = $"This computer is running on battery ({remaining}). " +
                              $"For safety, connect AC power before {operation}. Continue anyway?";
 
+            if (MainConsole.confirmDL)
+            {
+                MainConsole.WriteLine($"WARNING: {message}");
+                return batteryPercent > 15;
+            }
+
             if (!MainConsole.showUI || batteryPercent <= 15)
             {
                 MainConsole.WriteLine($"WARNING: {message}");

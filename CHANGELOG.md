@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Fixed driver extraction failure on paths containing spaces or Unicode characters (#276)
+- Fixed notebook driver recommendation for mobile GPUs configured with Game Ready Drivers
+- Fixed segmented downloader file sharing mode to enable full parallel downloads
+- Fixed crash when requested driver family is absent from API results
+- Fixed potential UI thread deadlock during download
+- Added 5-minute timeout and automatic cleanup for driver extraction
+- Added download cancellation when closing the download window
+- Fixed unified Studio driver selection on mobile GPUs and fallback when no driver is marked recommended
+- Hardened metadata fallbacks, version parsing, component parsing, archiver timeouts, and unattended execution
+
 ## [1.28.0] - 2026-09-18
 ### Added
 - One click autorun when user logs in, enable in configuration menu

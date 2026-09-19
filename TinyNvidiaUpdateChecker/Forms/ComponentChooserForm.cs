@@ -21,6 +21,10 @@ namespace TinyNvidiaUpdateChecker.Forms
         public (List<string>, bool saveConfig) OpenForm(List<Component> componentList, string configComponentsString = null)
         {
             this.componentList = componentList;
+            if (!componentList.Any(x => x.name == "Display.Driver"))
+                throw new InvalidOperationException("The installer is missing Display.Driver.");
+            List<string> defaultComponents = ComponentHandler.ApplyLaptopSafeDefaults(
+                ["Display.Driver"], GPUHandler.IsNotebookComputer(), componentList);
 
             // Parse configComponentsString into an array if it exists
             if (configComponentsString != null)
@@ -34,9 +38,22 @@ namespace TinyNvidiaUpdateChecker.Forms
             }
 
             // If quiet mode + config entry exist, return latest used co
-            if (!MainConsole.showUI)
+            if (!MainConsole.showUI || MainConsole.confirmDL)
             {
-                return (configComponents.ToList(), false);
+                chosenComponents = MainConsole.confirmDL ? [.. defaultComponents]
+                    : configComponents.Where(name => componentList.Any(x => x.name == name)).ToList();
+                if (!chosenComponents.Contains("Display.Driver")) chosenComponents.Add("Display.Driver");
+                for (int i = 0; i < chosenComponents.Count; i++)
+                {
+                    Component component = componentList.First(x => x.name == chosenComponents[i]);
+                    foreach (string dependency in component.dependencies.Keys)
+                    {
+                        if (!componentList.Any(x => x.name == dependency))
+                            throw new InvalidOperationException($"Missing required component: {dependency}");
+                        if (!chosenComponents.Contains(dependency)) chosenComponents.Add(dependency);
+                    }
+                }
+                return (chosenComponents, false);
             }
 
             // If config entry does not exist, hide the latest used components link
@@ -44,6 +61,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             ShowDialog();
 
+            if (!chosenComponents.Contains("Display.Driver"))
+                throw new OperationCanceledException("Component selection was cancelled or is incomplete.");
             return (chosenComponents, true);
         }
 

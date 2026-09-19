@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TinyNvidiaUpdateChecker.Forms;
 using TinyNvidiaUpdateChecker.Handlers;
@@ -12,14 +13,18 @@ namespace TinyNvidiaUpdateChecker
 {
     public partial class DriverAvailableDialog : Form
     {
-        static SelectedBtn selectedBtn;
-        static NvidiaDriver selectedDriver;
+        SelectedBtn selectedBtn = SelectedBtn.IGNORE;
+        NvidiaDriver selectedDriver;
         List<NvidiaDriver> nvidiaDrivers;
         string releaseNotes;
         float notesScale;
 
         public DriverAvailableDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
+            ArgumentNullException.ThrowIfNull(nvidiaDrivers);
+            if (nvidiaDrivers.Count == 0 || nvidiaDrivers.Any(x => x == null))
+                throw new ArgumentException("At least one valid driver is required.", nameof(nvidiaDrivers));
+
             InitializeComponent();
             contextMenuStrip1.Renderer = new CleanMenuRenderer();
             this.nvidiaDrivers = nvidiaDrivers;
@@ -31,13 +36,13 @@ namespace TinyNvidiaUpdateChecker
             using DriverAvailableDialog form = new(nvidiaDrivers, releaseNotes);
             form.ShowDialog();
 
-            return (selectedBtn, selectedDriver);
+            return (form.selectedBtn, form.selectedDriver);
         }
 
         private void DriverDialog_Load(object sender, EventArgs e)
         {
             webBrowser1.DocumentText = releaseNotes;
-            notesScale = this.CreateGraphics().DpiX;
+            notesScale = DeviceDpi;
 
             // Add each driver and assign uiIdx
             foreach (NvidiaDriver driver in this.nvidiaDrivers)
@@ -47,7 +52,7 @@ namespace TinyNvidiaUpdateChecker
             }
 
             // Set recommended driver as default choice
-            selectedDriver = nvidiaDrivers.Find(x => x.recommended);
+            selectedDriver = nvidiaDrivers.Find(x => x.recommended) ?? nvidiaDrivers[0];
 
             // This will trigger SelectedIndexChanged event
             versionBox.SelectedIndex = selectedDriver.uiIdx;
@@ -55,27 +60,34 @@ namespace TinyNvidiaUpdateChecker
 
         private void NotesBtn_Click(object sender, EventArgs e)
         {
+            if (selectedDriver == null) return;
             string pdfUrl = null;
 
-            if (selectedDriver.pdfUrl != null)
+            if (!string.IsNullOrWhiteSpace(selectedDriver.pdfUrl))
             {
                 pdfUrl = selectedDriver.pdfUrl;
             }
-            else if (selectedDriver.downloadUrl.Contains("Quadro_Certified"))
+            else if (selectedDriver.downloadUrl?.Contains("Quadro_Certified", StringComparison.OrdinalIgnoreCase) == true)
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/Quadro_Certified/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nvidia-rtx-quadro-release-notes.pdf";
             }
-            else if (selectedDriver.type == "grd")
+            else if (selectedDriver.type is "grd" or "notebook")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win11-win10-release-notes.pdf";
             }
-            else if (selectedDriver.type == "sd")
+            else if (selectedDriver.type is "sd" or "sd-notebook")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nsd-release-notes.pdf";
             }
 
             try
             {
+                if (string.IsNullOrWhiteSpace(pdfUrl))
+                {
+                    MessageBox.Show(this, "Release notes are unavailable for this driver.", "TinyNvidiaUpdateChecker",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
                 Process.Start(new ProcessStartInfo(pdfUrl) { UseShellExecute = true });
             }
             catch (Exception ex)
@@ -154,18 +166,31 @@ namespace TinyNvidiaUpdateChecker
 
         private void versionBox_SelectedIndexChanged(object sender, EventArgs e) { VersionBoxChangedIndex(); }
 
-        private void VersionBoxChangedIndex()
+        private async void VersionBoxChangedIndex()
         {
             // Find selected driver based on uiIdx
             selectedDriver = nvidiaDrivers.Find(x => x.uiIdx == versionBox.SelectedIndex);
+            if (selectedDriver == null) return;
 
+            NvidiaDriver driver = selectedDriver;
+            releasedLabel.Text = "Released: unknown";
+            sizeLabel.Text = $"Size: {driver.fileSizeEst}";
             // If selected driver is missing release date & file size (caused by experimental metadata)
             if (selectedDriver.releaseDate == DateTime.MinValue)
             {
-                (long fileSize, selectedDriver.releaseDate) = MainConsole.GetDriverMetadataFromNvidia(selectedDriver.downloadUrl);
-                double mibFileSize = Math.Round((fileSize / 1024f) / 1024f);
-                selectedDriver.fileSizeEst = mibFileSize + " MiB";
+                try
+                {
+                    (long fileSize, DateTime releaseDate) = await Task.Run(() => MainConsole.GetDriverMetadataFromNvidia(driver.downloadUrl));
+                    driver.releaseDate = releaseDate;
+                    driver.fileSizeEst = fileSize >= 0 ? Math.Round(fileSize / 1024d / 1024d) + " MiB" : "unknown";
+                }
+                catch (Exception ex)
+                {
+                    driver.fileSizeEst = "unknown";
+                    Debug.WriteLine($"Driver metadata unavailable: {ex.Message}");
+                }
             }
+            if (IsDisposed || Disposing || selectedDriver != driver) return;
 
             // Date
             int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates

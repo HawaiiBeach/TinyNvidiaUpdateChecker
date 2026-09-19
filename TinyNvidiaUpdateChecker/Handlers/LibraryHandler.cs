@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -94,7 +94,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                     process.Start();
                     string exePath = process.GetMainModuleFileName();
-                    process.WaitForExit();
+                    if (!process.WaitForExit(TimeSpan.FromSeconds(10)))
+                    {
+                        process.Kill(entireProcessTree: true);
+                        process.WaitForExit(TimeSpan.FromSeconds(5));
+                        continue;
+                    }
 
                     if (process.ExitCode == 0)
                     {

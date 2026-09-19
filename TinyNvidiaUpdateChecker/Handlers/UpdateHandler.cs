@@ -30,7 +30,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 if (new Version(MainConsole.onlineVer).CompareTo(new Version(MainConsole.offlineVer)) > 0) {
                     Console.WriteLine("There is a update available for TinyNvidiaUpdateChecker!");
 
-                    if (!MainConsole.confirmDL && !MainConsole.dryRun) {
+                    if (MainConsole.showUI && !MainConsole.noPrompt && !MainConsole.confirmDL && !MainConsole.dryRun
+                        && Environment.UserInteractive && !Console.IsInputRedirected && !Console.IsOutputRedirected) {
                         TaskDialogButton[] buttons = [
                             new("Update Now") { Tag = "update" },
                             new("Ignore") { Tag = "no" }
