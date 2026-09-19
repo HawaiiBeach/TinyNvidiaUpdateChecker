@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -93,6 +93,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     };
 
                     process.Start();
+                    string exePath = process.GetMainModuleFileName();
                     if (!process.WaitForExit(TimeSpan.FromSeconds(10)))
                     {
                         process.Kill(entireProcessTree: true);
@@ -102,8 +103,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                     if (process.ExitCode == 0)
                     {
-                        // App execution aliases are resolved through PATH when extracting.
-                        return new LibraryFile(string.Empty, entry.Value, true);
+                        string directoryPath = Path.GetDirectoryName(exePath) + @"\";
+                        return new LibraryFile(directoryPath, entry.Value, true);
                     }
                 }
                 catch { }

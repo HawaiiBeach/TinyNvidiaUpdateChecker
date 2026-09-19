@@ -1,4 +1,4 @@
-﻿using Ganss.Xss;
+using Ganss.Xss;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -148,13 +148,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     || !DateTime.TryParse(driver["ReleaseDateTime"]?.ToString(), out DateTime releaseDate)) continue;
 
                 // To identify Quadro New Feature Branch (NFB) drivers, check if IsFeaturePreview is set to 1
-                bool isFeaturePreview = (driver["IsFeaturePreview"]?.ToString() ?? "0") == "1";
+                bool isFeaturePreview = driver["IsFeaturePreview"].ToString() == "1";
 
                 // Get driver type and label based on download URL + isFeaturePreview
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(downloadUrl, isFeaturePreview);
 
                 // Extract PDF URL from OtherNotes
-                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"]?.ToString() ?? string.Empty);
+                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"].ToString());
                 string pdfUrl = ExtractPdfUrlFromNotes(otherNotes);
 
                 NvidiaDriver driverObj = new()
@@ -165,12 +165,12 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     typeLabel = driverTypeLabel,
                     downloadUrl = downloadUrl,
                     pdfUrl = pdfUrl,
-                    fileSizeEst = driver["DownloadURLFileSize"]?.ToString() ?? "unknown",
+                    fileSizeEst = driver["DownloadURLFileSize"].ToString(),
                     releaseDate = releaseDate
                 };
 
                 // Set recommended driver if unset, and the driver matches driverType
-                if (recommendedDriverIdx == -1 && driver["IsCRD"]?.ToString() == driverTypeInt.ToString())
+                if (recommendedDriverIdx == -1 && driver["IsCRD"].ToString() == driverTypeInt.ToString())
                 {
                     recommendedDriverIdx = i;
                     driverObj.recommended = true;
@@ -183,7 +183,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             // Get raw release notes
             JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
-            string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"]?.ToString() ?? string.Empty);
+            string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"].ToString());
 
             // Load release notes
             HtmlAgilityPack.HtmlDocument htmlDocument = new();
@@ -339,7 +339,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 foreach (OSClass os in cachedOSData)
                 {
-                    if (os?.name != null && Regex.IsMatch(os.name, "Windows 11"))
+                    if (Regex.IsMatch(os.name, "Windows 11"))
                     {
                         osId = os.id;
                         break;
@@ -350,7 +350,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 foreach (OSClass os in cachedOSData)
                 {
-                    if (os?.name != null && os.code == osVersion && Regex.IsMatch(os.name, osBit))
+                    if (os.code == osVersion && Regex.IsMatch(os.name, osBit))
                     {
                         osId = os.id;
                         break;

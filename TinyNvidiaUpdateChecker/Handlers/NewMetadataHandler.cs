@@ -103,6 +103,8 @@ public class NewMetadataHandler
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
                 if (driverTypeKey == "unknown") continue;
 
+                // For some reason, expermiental metadata repo is matching desktop GPUs with notebook drivers
+                // Filter out notebook drivers for desktop GPUs
                 // Studio drivers use unified desktop/notebook packages; GPU support was checked above.
                 if (driverTypeKey != "sd")
                 {
@@ -155,6 +157,7 @@ public class NewMetadataHandler
 
         // Mark the latest matching driver found as recommended
         NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver;
+
         // Metadata is ordered oldest to newest; fall back when no driver matches the preference.
         if (recommendedDriver == null && nvidiaDrivers.Count > 0)
         {
@@ -171,7 +174,7 @@ public class NewMetadataHandler
     // Maps experimental metadata "Type" to TNUC driver type
     private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string driverType)
     {
-        switch (driverType?.Trim().ToLowerInvariant())
+        switch (driverType?.ToLower())
         {
             case "desktop":
                 return ("grd", "Game Ready Driver");

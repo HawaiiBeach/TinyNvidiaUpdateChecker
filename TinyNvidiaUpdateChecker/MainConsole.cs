@@ -145,7 +145,7 @@ namespace TinyNvidiaUpdateChecker
             try { Run(args); }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(debug ? ex.ToString() : $"TNUC could not continue: {ex.Message}");
+                WriteLine(debug ? ex.ToString() : $"TNUC could not continue: {ex.Message}");
                 Environment.ExitCode = 1;
             }
         }
@@ -369,8 +369,12 @@ namespace TinyNvidiaUpdateChecker
                 string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
 
                 // Add minimal temp files
-                minimalInstaller = minimalInstallTempFiles != null;
-                if (minimalInstaller) tempFiles.AddRange(minimalInstallTempFiles);
+                if (minimalInstallTempFiles != null) {
+                    tempFiles.AddRange(minimalInstallTempFiles);
+                } else {
+                    // Fall back to original full installer
+                    minimalInstaller = false;
+                }
             }
 
             // Show installer
@@ -731,8 +735,12 @@ namespace TinyNvidiaUpdateChecker
                 string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
 
                 // Add minimal temp files
-                minimalInstaller = minimalInstallTempFiles != null;
-                if (minimalInstaller) tempFiles.AddRange(minimalInstallTempFiles);
+                if (minimalInstallTempFiles != null) {
+                    tempFiles.AddRange(minimalInstallTempFiles);
+                } else {
+                    // Fall back to original full installer
+                    minimalInstaller = false;
+                }
             }
 
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
@@ -786,7 +794,7 @@ namespace TinyNvidiaUpdateChecker
                 try { File.Delete(path); }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    Console.Error.WriteLine($"Could not delete partial download: {ex.Message}");
+                    WriteLine($"Could not delete partial download: {ex.Message}");
                 }
                 throw;
             } finally {
@@ -806,13 +814,22 @@ namespace TinyNvidiaUpdateChecker
             catch (Exception ex)
             {
                 string message = $"Driver extraction failed: {ex.Message}";
-                Console.Error.WriteLine(message);
+                WriteLine(message);
                 // Download confirmation is not consent to install additional components.
-                if (!silent && !confirmDL && MessageBox.Show(
-                    message + "\n\nUse the original full installer instead? This will not use your minimal component selection.",
-                    "TinyNvidiaUpdateChecker", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
-                    MessageBoxDefaultButton.Button2) == DialogResult.Yes)
-                    return null;
+                if (!silent && !confirmDL)
+                {
+                    DialogResult result = MessageBox.Show(
+                        message + "\n\nUse the original full installer instead? This will not use your minimal component selection.",
+                        "TinyNvidiaUpdateChecker",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button2);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        return null;
+                    }
+                }
 
                 callExit(1);
                 return null;
@@ -1004,7 +1021,7 @@ namespace TinyNvidiaUpdateChecker
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Could not clean extraction folder {extractedPath}: {ex.Message}");
+                    WriteLine($"Could not clean extraction folder {extractedPath}: {ex.Message}");
                 }
             }
         }
