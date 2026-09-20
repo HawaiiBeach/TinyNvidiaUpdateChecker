@@ -128,6 +128,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
         private void autorunCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (!Enabled) return;
+
             if (autorunCheckBox.Checked)
             {
                 DialogResult result = MessageBox.Show(
