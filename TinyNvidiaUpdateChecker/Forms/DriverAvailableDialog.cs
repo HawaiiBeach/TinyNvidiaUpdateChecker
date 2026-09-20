@@ -182,6 +182,9 @@ namespace TinyNvidiaUpdateChecker
             {
                 try
                 {
+                    releasedLabel.Text = "Released: loading...";
+                    sizeLabel.Text = "Size: loading...";
+
                     (long fileSize, DateTime releaseDate) = await Task.Run(() => MainConsole.GetDriverMetadataFromNvidia(driver.downloadUrl));
                     driver.releaseDate = releaseDate;
                     driver.fileSize = fileSize;
@@ -200,34 +203,33 @@ namespace TinyNvidiaUpdateChecker
             // Construct date label
             // How many days between the two dates
             int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days;
-            string daysAgoFromRelease;
+            string releasedLabelStr;
 
-            if (dateDiff == 1)
+            if (selectedDriver.releaseDate == DateTime.MinValue)
             {
-                daysAgoFromRelease = $"{dateDiff} day ago";
+                releasedLabelStr = "unknown";
+            }
+            else if (dateDiff == 1)
+            {
+                releasedLabelStr = $"{dateDiff} day ago";
             }
             else if (dateDiff < 1)
             {
-                daysAgoFromRelease = "today";
+                releasedLabelStr = "today";
             }
             else if (dateDiff < 30)
             {
-                daysAgoFromRelease = $"{dateDiff} days ago";
+                releasedLabelStr = $"{dateDiff} days ago";
             }
             else
             {
                 int months = dateDiff / 30;
-                daysAgoFromRelease = months == 1 ? "1 month ago" : $"{months} months ago";
-            }
-
-            if (selectedDriver.releaseDate == DateTime.MinValue)
-            {
-                daysAgoFromRelease = "unknown";
+                releasedLabelStr = months == 1 ? "1 month ago" : $"{months} months ago";
             }
 
             toolTip1.SetToolTip(releasedLabel, selectedDriver.releaseDate.ToShortDateString());
+            releasedLabel.Text = $"Released: {releasedLabelStr}";
 
-            releasedLabel.Text = $"Released: {daysAgoFromRelease}";
             versionLabel.Text = $"Version: {selectedDriver.version} (you're on {MainConsole.OfflineGPUVersion})";
             sizeLabel.Text = $"Size: {selectedDriver.fileSizeEst}";
             typeLabel.Text = $"Type: {selectedDriver.typeLabel}";
