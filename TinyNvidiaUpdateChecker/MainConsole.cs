@@ -242,13 +242,8 @@ namespace TinyNvidiaUpdateChecker
 
             var updateAvailable = false;
 
-            if (!Version.TryParse(OfflineGPUVersion, out Version vOffline)
-                || !Version.TryParse(OnlineGPUVersion, out Version vOnline))
-            {
-                WriteLine("Unable to compare installed and available NVIDIA driver versions.");
-                callExit(1);
-                return;
-            }
+            Version.TryParse(OfflineGPUVersion, out Version vOffline);
+            Version.TryParse(OnlineGPUVersion, out Version vOnline);
             int comparison = vOffline.CompareTo(vOnline);
 
             if (comparison == 0) {
@@ -296,7 +291,6 @@ namespace TinyNvidiaUpdateChecker
                 if (debug) WriteLine($"Metadata lookup failed: {error}");
             }
 
-            nvidiaDrivers?.RemoveAll(driver => driver == null);
             if (nvidiaDrivers?.Count > 0)
             {
                 return (nvidiaDrivers, releaseNotes);

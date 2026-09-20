@@ -87,7 +87,7 @@ public class NewMetadataHandler
         Version latestParsedVersion = new(0, 0);
         Version latestNotebookVersion = new(0, 0);
         bool isMobileGpu = IsMobileGpuIndex(gpuIndex);
-        bool preferNotebook = !string.Equals(driverType, "sd", StringComparison.OrdinalIgnoreCase) && isMobileGpu;
+        bool preferNotebook = isMobileGpu;
 
         if (_combinedGpuData?.versions == null) return nvidiaDrivers;
 
@@ -133,9 +133,9 @@ public class NewMetadataHandler
                 nvidiaDrivers.Add(driverObj);
 
                 // Compares the most up to date version, and system compatible (GRD/SD/Notebook), then sets it as recommended
-                bool matchesPreference = preferNotebook
-                    ? string.Equals(driverType, "grd", StringComparison.OrdinalIgnoreCase) && driverTypeKey == "notebook"
-                    : string.Equals(driverTypeKey, driverType, StringComparison.OrdinalIgnoreCase);
+                bool matchesPreference = preferNotebook && driverType == "grd"
+                    ? driverTypeKey == "notebook"
+                    : driverTypeKey == driverType;
                 if (matchesPreference && Version.TryParse(driver.version, out Version currentParsedVersion))
                 {
 
