@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.29.0] - 2026-09-20
 ### Added
 - Individual driver release notes (does not apply to experimental metadata)
 - 5-minute timeout for driver extraction (Author: @TanoINA)
