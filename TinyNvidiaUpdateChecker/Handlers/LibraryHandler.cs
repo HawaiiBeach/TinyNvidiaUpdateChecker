@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -94,7 +94,21 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                     process.Start();
                     string exePath = process.GetMainModuleFileName();
-                    process.WaitForExit();
+
+                    // Wait for the process to exit
+                    if (!process.WaitForExit(TimeSpan.FromSeconds(10)))
+                    {
+                        // Did not exit within 10 seconds
+                        // NanaZip runs as an MSIX App Execution Alias which can hang or enter a zombie state
+                        // Now kill the hanging process tree
+                        process.Kill(entireProcessTree: true);
+
+                        // Wait for the process to exit to give us exit code
+                        process.WaitForExit(TimeSpan.FromSeconds(5));
+
+                        // Skip broken library
+                        continue;
+                    }
 
                     if (process.ExitCode == 0)
                     {

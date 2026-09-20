@@ -36,6 +36,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 // Quiet mode does not show this UI
                 // Might change the behaviour in the future. Installing a GPU driver without user interaction is weird
+                // TODO this should only be the path for confirm DL, not for quiet mode.
                 try
                 {
                     MainConsole.WriteLine();
@@ -47,12 +48,18 @@ namespace TinyNvidiaUpdateChecker.Forms
                         Arguments = "/s /noreboot"
                     };
 
-                    Process.Start(startInfo).WaitForExit();
+                    using Process installer = Process.Start(startInfo)
+                        ?? throw new InvalidOperationException("The installer could not be started");
+
+                    installer.WaitForExit();
+                    if (installer.ExitCode != 0)
+                        throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}");
+
                     MainConsole.Write("OK!");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    MainConsole.WriteLine("Could not run the installer, try running it manually.");
+                    MainConsole.WriteLine($"Installation failed: {ex.Message}");
                     MainConsole.WriteLine();
                     MainConsole.callExit(1);
                 }
@@ -135,7 +142,11 @@ namespace TinyNvidiaUpdateChecker.Forms
                     UseShellExecute = true
                 };
 
-                Process.Start(startInfo).WaitForExit();
+                using Process installer = Process.Start(startInfo)
+                    ?? throw new InvalidOperationException("The installer could not be started.");
+                installer.WaitForExit();
+                if (installer.ExitCode != 0)
+                    throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}.");
 
                 hasRunInstaller = true;
                 MainConsole.Write("OK!");
@@ -143,9 +154,9 @@ namespace TinyNvidiaUpdateChecker.Forms
                 runBtn.Enabled = false;
                 Focus();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show("Could not start installer!", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Installation failed: {ex.Message}", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 MainConsole.Write("ERROR!");
                 MainConsole.WriteLine();
             }

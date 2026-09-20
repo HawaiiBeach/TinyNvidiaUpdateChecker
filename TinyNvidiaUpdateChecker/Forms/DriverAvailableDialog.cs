@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TinyNvidiaUpdateChecker.Forms;
 using TinyNvidiaUpdateChecker.Handlers;
@@ -12,14 +13,18 @@ namespace TinyNvidiaUpdateChecker
 {
     public partial class DriverAvailableDialog : Form
     {
-        static SelectedBtn selectedBtn;
-        static NvidiaDriver selectedDriver;
+        SelectedBtn selectedBtn = SelectedBtn.IGNORE;
+        NvidiaDriver selectedDriver;
         List<NvidiaDriver> nvidiaDrivers;
         string releaseNotes;
         float notesScale;
 
         public DriverAvailableDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
+            ArgumentNullException.ThrowIfNull(nvidiaDrivers);
+            if (nvidiaDrivers.Count == 0 || nvidiaDrivers.Any(x => x == null))
+                throw new ArgumentException("At least one valid driver is required", nameof(nvidiaDrivers));
+
             InitializeComponent();
             contextMenuStrip1.Renderer = new CleanMenuRenderer();
             this.nvidiaDrivers = nvidiaDrivers;
@@ -31,13 +36,13 @@ namespace TinyNvidiaUpdateChecker
             using DriverAvailableDialog form = new(nvidiaDrivers, releaseNotes);
             form.ShowDialog();
 
-            return (selectedBtn, selectedDriver);
+            return (form.selectedBtn, form.selectedDriver);
         }
 
         private void DriverDialog_Load(object sender, EventArgs e)
         {
             webBrowser1.DocumentText = releaseNotes;
-            notesScale = this.CreateGraphics().DpiX;
+            notesScale = DeviceDpi;
 
             // Add each driver and assign uiIdx
             foreach (NvidiaDriver driver in this.nvidiaDrivers)
@@ -46,8 +51,8 @@ namespace TinyNvidiaUpdateChecker
                 driver.uiIdx = index;
             }
 
-            // Set recommended driver as default choice
-            selectedDriver = nvidiaDrivers.Find(x => x.recommended);
+            // Set recommended driver as default choice, or fallback to first driver
+            selectedDriver = nvidiaDrivers.Find(x => x.recommended) ?? nvidiaDrivers[0];
 
             // This will trigger SelectedIndexChanged event
             versionBox.SelectedIndex = selectedDriver.uiIdx;
@@ -55,27 +60,36 @@ namespace TinyNvidiaUpdateChecker
 
         private void NotesBtn_Click(object sender, EventArgs e)
         {
+            if (selectedDriver == null) return;
             string pdfUrl = null;
 
-            if (selectedDriver.pdfUrl != null)
+            // selected driver has pdfUrl
+            if (!string.IsNullOrWhiteSpace(selectedDriver.pdfUrl))
             {
                 pdfUrl = selectedDriver.pdfUrl;
             }
-            else if (selectedDriver.downloadUrl.Contains("Quadro_Certified"))
+            // Fallback to constructing the URL based on driver type and version
+            else if (selectedDriver.downloadUrl?.Contains("Quadro_Certified", StringComparison.OrdinalIgnoreCase) == true)
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/Quadro_Certified/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nvidia-rtx-quadro-release-notes.pdf";
             }
-            else if (selectedDriver.type == "grd")
+            else if (selectedDriver.type is "grd" or "notebook")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win11-win10-release-notes.pdf";
             }
-            else if (selectedDriver.type == "sd")
+            else if (selectedDriver.type is "sd" or "sd-notebook")
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nsd-release-notes.pdf";
             }
 
             try
             {
+                if (string.IsNullOrWhiteSpace(pdfUrl))
+                {
+                    MessageBox.Show(this, "Release notes are unavailable for this driver.", "TinyNvidiaUpdateChecker",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
                 Process.Start(new ProcessStartInfo(pdfUrl) { UseShellExecute = true });
             }
             catch (Exception ex)
@@ -154,49 +168,68 @@ namespace TinyNvidiaUpdateChecker
 
         private void versionBox_SelectedIndexChanged(object sender, EventArgs e) { VersionBoxChangedIndex(); }
 
-        private void VersionBoxChangedIndex()
+        private async void VersionBoxChangedIndex()
         {
             // Find selected driver based on uiIdx
             selectedDriver = nvidiaDrivers.Find(x => x.uiIdx == versionBox.SelectedIndex);
+            if (selectedDriver == null) return;
+
+            NvidiaDriver driver = selectedDriver;
+            sizeLabel.Text = $"Size: {driver.fileSizeEst}";
 
             // If selected driver is missing release date & file size (caused by experimental metadata)
             if (selectedDriver.releaseDate == DateTime.MinValue)
             {
-                (long fileSize, selectedDriver.releaseDate) = MainConsole.GetDriverMetadataFromNvidia(selectedDriver.downloadUrl);
-                double mibFileSize = Math.Round((fileSize / 1024f) / 1024f);
-                selectedDriver.fileSizeEst = mibFileSize + " MiB";
+                try
+                {
+                    releasedLabel.Text = "Released: loading...";
+                    sizeLabel.Text = "Size: loading...";
+
+                    (long fileSize, DateTime releaseDate) = await Task.Run(() => MainConsole.GetDriverMetadataFromNvidia(driver.downloadUrl));
+                    driver.releaseDate = releaseDate;
+                    driver.fileSize = fileSize;
+                    driver.fileSizeEst = fileSize >= 0 ? Math.Round(fileSize / 1024d / 1024d) + " MiB" : "unknown";
+                }
+                catch (Exception ex)
+                {
+                    driver.fileSizeEst = "unknown";
+                    Debug.WriteLine($"Driver metadata unavailable: {ex.Message}");
+                }
             }
 
-            // Date
-            int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates
-            string daysAgoFromRelease;
+            // Ensure UI is still valid and the selected driver hasn't changed during async operation
+            if (IsDisposed || Disposing || selectedDriver != driver) return;
 
-            if (dateDiff == 1)
+            // Construct date label
+            // How many days between the two dates
+            int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days;
+            string releasedLabelStr;
+
+            if (selectedDriver.releaseDate == DateTime.MinValue)
             {
-                daysAgoFromRelease = $"{dateDiff} day ago";
+                releasedLabelStr = "unknown";
+            }
+            else if (dateDiff == 1)
+            {
+                releasedLabelStr = $"{dateDiff} day ago";
             }
             else if (dateDiff < 1)
             {
-                daysAgoFromRelease = "today";
+                releasedLabelStr = "today";
             }
             else if (dateDiff < 30)
             {
-                daysAgoFromRelease = $"{dateDiff} days ago";
+                releasedLabelStr = $"{dateDiff} days ago";
             }
             else
             {
                 int months = dateDiff / 30;
-                daysAgoFromRelease = months == 1 ? "1 month ago" : $"{months} months ago";
-            }
-
-            if (selectedDriver.releaseDate == DateTime.MinValue)
-            {
-                daysAgoFromRelease = "unknown";
+                releasedLabelStr = months == 1 ? "1 month ago" : $"{months} months ago";
             }
 
             toolTip1.SetToolTip(releasedLabel, selectedDriver.releaseDate.ToShortDateString());
+            releasedLabel.Text = $"Released: {releasedLabelStr}";
 
-            releasedLabel.Text = $"Released: {daysAgoFromRelease}";
             versionLabel.Text = $"Version: {selectedDriver.version} (you're on {MainConsole.OfflineGPUVersion})";
             sizeLabel.Text = $"Size: {selectedDriver.fileSizeEst}";
             typeLabel.Text = $"Type: {selectedDriver.typeLabel}";

@@ -1,4 +1,4 @@
-﻿using Ganss.Xss;
+using Ganss.Xss;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace TinyNvidiaUpdateChecker.Handlers
 {
@@ -38,9 +37,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             if (!success) return (null, "Could not lookup GPU in ZenitH-AT's nvidia-data repo", null);
             int osId = GetOsId();
+            if (osId == 0) return (null, "No matching operating system was found in the metadata.", null);
 
             // Use AJAX API
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetDriverInfo(gpu, osId, driverType);
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "NVIDIA Ajax API returned no found driver.", null);
 
             // Return found
             return (nvidiaDrivers, null, releaseNotes);
@@ -128,6 +129,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             List<NvidiaDriver> nvidiaDrivers = new();
             int recommendedDriverIdx = -1;
             JArray driversFound = GetDriversFromNvidiaAjax(gpu.pfId, osId);
+            if (driversFound == null || driversFound.Count == 0) return (null, null);
 
             // Driver type (upCRD)
             // - 0 is Game Ready Driver (GRD), and/or notebook, and/or quadro (RTX enterprise)
@@ -137,12 +139,14 @@ namespace TinyNvidiaUpdateChecker.Handlers
             for (int i = 0; i < driversFound.Count; i++)
             {
                 JObject driver = (JObject)driversFound[i]["downloadInfo"];
+                string version = driver["Version"].ToString();
+                string downloadUrl = driver["DownloadURL"].ToString();
 
                 // To identify Quadro New Feature Branch (NFB) drivers, check if IsFeaturePreview is set to 1
                 bool isFeaturePreview = driver["IsFeaturePreview"].ToString() == "1";
 
                 // Get driver type and label based on download URL + isFeaturePreview
-                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver["DownloadURL"].ToString(), isFeaturePreview);
+                (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(downloadUrl, isFeaturePreview);
 
                 // Extract PDF URL from OtherNotes
                 string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"].ToString());
@@ -150,11 +154,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 NvidiaDriver driverObj = new()
                 {
-                    title = $"{driver["Version"].ToString()} - Type: {driverTypeLabel}",
-                    version = driver["Version"].ToString(),
+                    title = $"{version} - Type: {driverTypeLabel}",
+                    version = version,
                     type = driverTypeKey,
                     typeLabel = driverTypeLabel,
-                    downloadUrl = driver["DownloadURL"].ToString(),
+                    downloadUrl = downloadUrl,
                     pdfUrl = pdfUrl,
                     fileSizeEst = driver["DownloadURLFileSize"].ToString(),
                     releaseDate = DateTime.Parse(driver["ReleaseDateTime"].ToString())
@@ -169,6 +173,9 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 nvidiaDrivers.Add(driverObj);
             }
+
+            // No found driver
+            if (recommendedDriverIdx == -1) return (null, null);
 
             // Get raw release notes
             JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
@@ -269,7 +276,6 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 MainConsole.WriteLine(ex.ToString());
             }
 
-            MainConsole.callExit(1);
             return null;
         }
 
@@ -289,40 +295,50 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
         }
 
-        // Maps NVIDIA Ajax metadata "Type" to TNUC driver type
+        // Maps NVIDIA Ajax metadata "Type" to TNUC driver type.
+        // NOTE: this will break if NVIDIA changes their naming scheme
         private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string downloadUrl, bool isFeaturePreview)
         {
-            // Quadro - Stable branch
-            if (downloadUrl.Contains("Quadro_Certified")) {
-                if (isFeaturePreview) {
-                    return ("quadro-nfb", "New Feature Branch (RTX Enterprise)");
-                } else {
-                    return ("quadro", "Quadro (RTX Enterprise)");
-                }
+            if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out Uri uri))
+                return ("unknown", "Unknown");
 
-            // Desktop - GRD
-            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-dch-whql.exe")) {
-                return ("grd", "Game Ready Driver");
+            string path = Uri.UnescapeDataString(uri.AbsolutePath);
 
-            // Desktop - SD
-            } else if (downloadUrl.Contains("-desktop-win10-win11-64bit-international-nsd-dch-whql.exe")) {
-                return ("sd", "Studio Driver");
+            // Split the download URL into segments to check for "Quadro_Certified"
+            string[] segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            // Notebook - GRD
-            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-dch-whql.exe")) {
-                return ("notebook", "Notebook");
-
-            // Notebook - SD
-            } else if (downloadUrl.Contains("-notebook-win10-win11-64bit-international-nsd-dch-whql.exe")) {
-                return ("sd-notebook", "Studio Driver (Notebook)");
+            if (segments.Contains("Quadro_Certified", StringComparer.OrdinalIgnoreCase))
+            {
+                return isFeaturePreview
+                    ? ("quadro-nfb", "New Feature Branch (RTX Enterprise)")
+                    : ("quadro", "Quadro (RTX Enterprise)");
             }
 
-            // Fallback is desktop GRD
-            return ("grd", "Game Ready Driver (Unknown)");
+            // Split the filename by '-' to match keywords
+            string[] keywords = Path.GetFileNameWithoutExtension(path).Split('-');
+
+            bool notebook = keywords.Contains("notebook", StringComparer.OrdinalIgnoreCase);
+            bool studio = keywords.Contains("nsd", StringComparer.OrdinalIgnoreCase);
+
+            if (studio)
+            {
+                return notebook
+                    ? ("sd-notebook", "Studio Driver (Notebook)")
+                    : ("sd", "Studio Driver");
+            }
+                
+
+            if (notebook) return ("notebook", "Notebook");
+
+            if (keywords.Contains("desktop", StringComparer.OrdinalIgnoreCase))
+                return ("grd", "Game Ready Driver");
+
+            return ("unknown", "Unknown");
         }
 
         public static int GetOsId()
         {
+            if (cachedOSData == null) return 0;
             // Get operating system ID
             string osVersion = $"{Environment.OSVersion.Version.Major}.{Environment.OSVersion.Version.Minor}";
             string osBit = Environment.Is64BitOperatingSystem ? "64" : "32";
@@ -358,7 +374,6 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 MainConsole.WriteLine("No NVIDIA driver was found for this operating system configuration. Make sure TNUC is updated.");
                 MainConsole.WriteLine();
                 MainConsole.WriteLine($"osVersion: {osVersion}");
-                MainConsole.callExit(1);
             }
 
             return osId;

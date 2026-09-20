@@ -26,6 +26,7 @@ public class NvidiaDriver
     public string version { get; set; }
     public string type { get; set; }
     public string typeLabel { get; set; }
+    public long fileSize { get; set; }
     public string fileSizeEst { get; set; }
     public string downloadUrl { get; set; }
     public string pdfUrl { get; set; }
