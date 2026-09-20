@@ -61,6 +61,11 @@ Provides an optional list of older compatible versions. Easily downgrade when fa
 
 Be sure to [check out the wiki](https://github.com/HawaiiBeach/TinyNvidiaUpdateChecker/wiki) to learn more about how to use TNUC.
 
+## Notable credits
+- [TanoINA](https://github.com/TanoINA) for fixing 10+ deep bugs
+- [ZenitH-AT](https://github.com/ZenitH-AT) for GPU metadata repo
+- PowerTechUp for experimental GPU metadata repo
+
 ## Legal
 
 ### License
