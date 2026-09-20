@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed potential UI thread deadlock during download (Author: @TanoINA)
 - Fixed many edge cases for components handling (Author: @TanoINA)
 - Cancel execution when closing visual progress bar (edge case) (Author: @TanoINA)
-- Experimental metadata no longer freezes whilst retrieving release date (Author: @TanoINA)
+- Experimental metadata no longer freezes whilst retrieving release date, shows "loading" instead of "unknown" (Author: @TanoINA)
 
 ### Changed
 - Don't allow unattended execution when config isn't set up (Author: @TanoINA)
