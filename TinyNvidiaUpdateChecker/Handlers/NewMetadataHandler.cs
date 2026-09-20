@@ -159,11 +159,10 @@ public class NewMetadataHandler
         // Mark the latest matching driver found as recommended
         NvidiaDriver recommendedDriver = latestNotebookDriver ?? latestDriver;
 
-        // Metadata is ordered oldest to newest; fall back when no driver matches the preference.
+        // Fall back when no driver is recommended (Use last because list is reversed)
         if (recommendedDriver == null && nvidiaDrivers.Count > 0)
-        {
             recommendedDriver = nvidiaDrivers.LastOrDefault();
-        }
+
         if (recommendedDriver != null) recommendedDriver.recommended = true;
 
         // Reverse list, because this metadata is sorted from oldest to newest, and we want the newest first

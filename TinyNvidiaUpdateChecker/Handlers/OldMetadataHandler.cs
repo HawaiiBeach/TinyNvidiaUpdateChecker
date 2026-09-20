@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace TinyNvidiaUpdateChecker.Handlers
 {
@@ -42,7 +41,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             // Use AJAX API
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetDriverInfo(gpu, osId, driverType);
-            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "No driver matches the configured driver family.", null);
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "NVIDIA Ajax API returned no found driver.", null);
 
             // Return found
             return (nvidiaDrivers, null, releaseNotes);
@@ -179,7 +178,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 nvidiaDrivers.Add(driverObj);
             }
 
-            if (recommendedDriverIdx < 0) return (null, null);
+            // No found driver
+            if (recommendedDriverIdx == -1) return (null, null);
 
             // Get raw release notes
             JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
@@ -300,14 +300,18 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
         }
 
-        // Maps NVIDIA Ajax metadata "Type" to TNUC driver type
+        // Maps NVIDIA Ajax metadata "Type" to TNUC driver type.
+        // NOTE: this will break if NVIDIA changes their naming scheme
         private static (string driverTypeKey, string driverTypeLabel) GetDriverTypeKey(string downloadUrl, bool isFeaturePreview)
         {
             if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out Uri uri))
                 return ("unknown", "Unknown");
 
             string path = Uri.UnescapeDataString(uri.AbsolutePath);
+
+            // Split the download URL into segments to check for "Quadro_Certified"
             string[] segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
             if (segments.Contains("Quadro_Certified", StringComparer.OrdinalIgnoreCase))
             {
                 return isFeaturePreview
@@ -315,13 +319,23 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     : ("quadro", "Quadro (RTX Enterprise)");
             }
 
-            string[] tokens = Path.GetFileNameWithoutExtension(path).Split('-');
-            bool notebook = tokens.Contains("notebook", StringComparer.OrdinalIgnoreCase);
-            bool studio = tokens.Contains("nsd", StringComparer.OrdinalIgnoreCase);
+            // Split the filename by '-' to match keywords
+            string[] keywords = Path.GetFileNameWithoutExtension(path).Split('-');
+
+            bool notebook = keywords.Contains("notebook", StringComparer.OrdinalIgnoreCase);
+            bool studio = keywords.Contains("nsd", StringComparer.OrdinalIgnoreCase);
+
             if (studio)
-                return notebook ? ("sd-notebook", "Studio Driver (Notebook)") : ("sd", "Studio Driver");
+            {
+                return notebook
+                    ? ("sd-notebook", "Studio Driver (Notebook)")
+                    : ("sd", "Studio Driver");
+            }
+                
+
             if (notebook) return ("notebook", "Notebook");
-            if (tokens.Contains("desktop", StringComparer.OrdinalIgnoreCase))
+
+            if (keywords.Contains("desktop", StringComparer.OrdinalIgnoreCase))
                 return ("grd", "Game Ready Driver");
 
             return ("unknown", "Unknown");
