@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigurationForm));
             groupBox1 = new System.Windows.Forms.GroupBox();
             autorunCheckBox = new System.Windows.Forms.CheckBox();
             minimalCheckBox = new System.Windows.Forms.CheckBox();
@@ -139,7 +140,7 @@
             experimentalCheckBox.Size = new System.Drawing.Size(174, 19);
             experimentalCheckBox.TabIndex = 10;
             experimentalCheckBox.Text = "Use experimental data repo?";
-            toolTip1.SetToolTip(experimentalCheckBox, "Uses an experimental GPU metadata repo.\r\nThis resolves issues with eGPUs and TNUC not able to identify GPUs by name.\r\nNOTE: Does not support Quadro (RTX Enterprise) drivers\r\nData provided by TechPowerUp");
+            toolTip1.SetToolTip(experimentalCheckBox, resources.GetString("experimentalCheckBox.ToolTip"));
             experimentalCheckBox.UseVisualStyleBackColor = true;
             // 
             // groupBox4

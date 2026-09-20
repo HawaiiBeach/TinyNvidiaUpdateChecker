@@ -144,6 +144,13 @@
   <metadata name="experimentalCheckBox.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <data name="experimentalCheckBox.ToolTip" xml:space="preserve">
+    <value>Uses an experimental GPU metadata repo.
+This resolves issues with eGPUs and TNUC not able to identify GPUs by name.
+NOTE: Does not support Quadro (RTX Enterprise) drivers
+NOTE: Does not support individual, and Studio Driver release notes
+Data provided by TechPowerUp</value>
+  </data>
   <metadata name="groupBox4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
