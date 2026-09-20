@@ -94,9 +94,14 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                     process.Start();
                     string exePath = process.GetMainModuleFileName();
+
+                    // Wait for the process to exit, with a timeout of 10 seconds
                     if (!process.WaitForExit(TimeSpan.FromSeconds(10)))
                     {
+                        // If the process does not exit within the timeout, kill it
                         process.Kill(entireProcessTree: true);
+
+                        // Wait for the process to exit to give us exit code
                         process.WaitForExit(TimeSpan.FromSeconds(5));
                         continue;
                     }
