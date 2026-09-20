@@ -13,10 +13,6 @@ namespace TinyNvidiaUpdateChecker.Handlers
     /// </summary>
     class ConfigurationHandler
     {
-        private static bool CanPrompt => MainConsole.showUI && !MainConsole.confirmDL
-            && !MainConsole.noPrompt && !MainConsole.dryRun && Environment.UserInteractive
-            && !Console.IsInputRedirected && !Console.IsOutputRedirected;
-
         /// <summary>
         /// Configuration directory path, blueprint: <local-appdata><project-name>
         /// </summary>
@@ -145,11 +141,10 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 Console.WriteLine(ex.ToString());
                 Console.WriteLine();
                 Console.WriteLine("The config file has been wiped due to a possible syntax error, please run the application again and setup your values.");
-                if (CanPrompt)
+                if (!MainConsole.confirmDL && MainConsole.showUI)
                 {
                     try { Console.ReadKey(true); }
-                    catch (InvalidOperationException) { }
-                    catch (IOException) { }
+                    catch { }
                 }
                 Environment.Exit(1);
             }
@@ -194,7 +189,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 case "GPU ID":
                 {
-                    if (!CanPrompt)
+                    if (!MainConsole.confirmDL)
                         throw new InvalidOperationException("Select a GPU interactively before running unattended.");
                     using GPUSelectorForm gpuForm = new();
                     value = gpuForm.OpenForm(data);
@@ -222,17 +217,15 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
         private static string SetupConfigYesNoMessagebox(string text, string[] values, string defaultValue)
         {
-            if (CanPrompt) {
-                DialogResult dialogResult = MessageBox.Show(text, "TinyNvidiaUpdateChecker", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                return dialogResult == DialogResult.Yes ? values[0] : values[1];
-            } else {
-                return defaultValue;
-            }
+            if (MainConsole.confirmDL) return defaultValue;
+
+            DialogResult dialogResult = MessageBox.Show(text, "TinyNvidiaUpdateChecker", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return dialogResult == DialogResult.Yes ? values[0] : values[1];
         }
 
         public static string ShowButtonDialog(string title, string text, TaskDialogIcon icon, TaskDialogButton[] buttonList)
         {
-            if (!CanPrompt) return buttonList[0].Tag?.ToString();
+            if (!MainConsole.confirmDL) return buttonList[0].Tag?.ToString();
             var buttons = new TaskDialogButtonCollection();
 
             foreach (TaskDialogButton button in buttonList)

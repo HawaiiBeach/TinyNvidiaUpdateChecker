@@ -1062,8 +1062,7 @@ namespace TinyNvidiaUpdateChecker
                 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
             {
                 try { Console.ReadKey(true); }
-                catch (InvalidOperationException) { }
-                catch (IOException) { }
+                catch { }
             }
             FreeConsole();
             Environment.Exit(exitNum);
