@@ -105,7 +105,7 @@
             cancelButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             cancelButton.Name = "cancelButton";
             cancelButton.Size = new System.Drawing.Size(55, 22);
-            cancelButton.TabIndex = 8;
+            cancelButton.TabIndex = 11;
             cancelButton.Text = "Cancel";
             cancelButton.UseVisualStyleBackColor = true;
             cancelButton.Click += cancelButton_Click;
@@ -116,7 +116,7 @@
             saveButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             saveButton.Name = "saveButton";
             saveButton.Size = new System.Drawing.Size(82, 22);
-            saveButton.TabIndex = 7;
+            saveButton.TabIndex = 12;
             saveButton.Text = "Save";
             saveButton.UseVisualStyleBackColor = true;
             saveButton.Click += saveButton_Click;
@@ -137,7 +137,7 @@
             experimentalCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             experimentalCheckBox.Name = "experimentalCheckBox";
             experimentalCheckBox.Size = new System.Drawing.Size(174, 19);
-            experimentalCheckBox.TabIndex = 6;
+            experimentalCheckBox.TabIndex = 10;
             experimentalCheckBox.Text = "Use experimental data repo?";
             toolTip1.SetToolTip(experimentalCheckBox, "Uses an experimental GPU metadata repo.\r\nThis resolves issues with eGPUs and TNUC not able to identify GPUs by name.\r\nNOTE: Does not support Quadro (RTX Enterprise) drivers\r\nData provided by TechPowerUp");
             experimentalCheckBox.UseVisualStyleBackColor = true;
@@ -150,7 +150,7 @@
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
             groupBox4.Size = new System.Drawing.Size(215, 44);
-            groupBox4.TabIndex = 23;
+            groupBox4.TabIndex = 9;
             groupBox4.TabStop = false;
             groupBox4.Text = "Experimental";
             // 
@@ -163,7 +163,7 @@
             multiGpuGroupBox.Name = "multiGpuGroupBox";
             multiGpuGroupBox.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
             multiGpuGroupBox.Size = new System.Drawing.Size(215, 70);
-            multiGpuGroupBox.TabIndex = 22;
+            multiGpuGroupBox.TabIndex = 7;
             multiGpuGroupBox.TabStop = false;
             multiGpuGroupBox.Text = "Multi GPU Setup";
             // 
@@ -173,7 +173,7 @@
             resetGpuButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             resetGpuButton.Name = "resetGpuButton";
             resetGpuButton.Size = new System.Drawing.Size(122, 38);
-            resetGpuButton.TabIndex = 5;
+            resetGpuButton.TabIndex = 8;
             resetGpuButton.Text = "Reset GPU choice\r\n(requires restart)";
             resetGpuButton.UseVisualStyleBackColor = true;
             // 
@@ -186,7 +186,7 @@
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
             groupBox2.Size = new System.Drawing.Size(215, 65);
-            groupBox2.TabIndex = 21;
+            groupBox2.TabIndex = 4;
             groupBox2.TabStop = false;
             groupBox2.Text = "Driver type";
             // 
@@ -197,7 +197,7 @@
             sdRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             sdRadioButton.Name = "sdRadioButton";
             sdRadioButton.Size = new System.Drawing.Size(93, 19);
-            sdRadioButton.TabIndex = 4;
+            sdRadioButton.TabIndex = 6;
             sdRadioButton.TabStop = true;
             sdRadioButton.Text = "Studio Driver";
             sdRadioButton.UseVisualStyleBackColor = true;
@@ -209,7 +209,7 @@
             grdRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             grdRadioButton.Name = "grdRadioButton";
             grdRadioButton.Size = new System.Drawing.Size(173, 19);
-            grdRadioButton.TabIndex = 3;
+            grdRadioButton.TabIndex = 5;
             grdRadioButton.TabStop = true;
             grdRadioButton.Text = "Game Ready Driver (default)";
             grdRadioButton.UseVisualStyleBackColor = true;
