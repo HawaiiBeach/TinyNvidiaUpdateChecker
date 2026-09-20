@@ -94,7 +94,7 @@ namespace TinyNvidiaUpdateChecker
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                ConsoleHelper.WriteLine(ex.ToString());
             }
         }
 
@@ -193,7 +193,7 @@ namespace TinyNvidiaUpdateChecker
                 catch (Exception ex)
                 {
                     driver.fileSizeEst = "unknown";
-                    Debug.WriteLine($"Driver metadata unavailable: {ex.Message}");
+                    ConsoleHelper.WriteLine($"Driver metadata unavailable: {ex.Message}");
                 }
             }
 
@@ -265,7 +265,7 @@ public class CleanMenuRenderer : ToolStripProfessionalRenderer
             int x = (int)(itemHeight * 0.25f);
             int y = (itemHeight - boxSize) / 2;
 
-            Rectangle boxRect = new Rectangle(x, y, boxSize, boxSize);
+            Rectangle boxRect = new(x, y, boxSize, boxSize);
 
             // Render checkbox background
             using (var brush = new SolidBrush(Color.FromArgb(0, 120, 215)))
@@ -275,17 +275,15 @@ public class CleanMenuRenderer : ToolStripProfessionalRenderer
 
             // Render dynamically scaled checkmark
             float penWidth = Math.Max(1.5f, boxSize / 8.0f);
-            using (var pen = new Pen(Color.White, penWidth))
-            {
-                pen.StartCap = LineCap.Round;
-                pen.EndCap = LineCap.Round;
+            using Pen pen = new(Color.White, penWidth);
+            pen.StartCap = LineCap.Round;
+            pen.EndCap = LineCap.Round;
 
-                PointF p1 = new PointF(boxRect.Left + boxSize * 0.22f, boxRect.Top + boxSize * 0.52f);
-                PointF p2 = new PointF(boxRect.Left + boxSize * 0.44f, boxRect.Top + boxSize * 0.74f);
-                PointF p3 = new PointF(boxRect.Left + boxSize * 0.80f, boxRect.Top + boxSize * 0.26f);
+            PointF p1 = new(boxRect.Left + boxSize * 0.22f, boxRect.Top + boxSize * 0.52f);
+            PointF p2 = new(boxRect.Left + boxSize * 0.44f, boxRect.Top + boxSize * 0.74f);
+            PointF p3 = new(boxRect.Left + boxSize * 0.80f, boxRect.Top + boxSize * 0.26f);
 
-                e.Graphics.DrawLines(pen, new[] { p1, p2, p3 });
-            }
+            e.Graphics.DrawLines(pen, [p1, p2, p3]);
         }
     }
 

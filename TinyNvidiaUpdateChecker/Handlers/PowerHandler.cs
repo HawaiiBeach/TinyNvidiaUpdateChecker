@@ -34,13 +34,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             if (MainConsole.confirmDL)
             {
-                MainConsole.WriteLine($"WARNING: {message}");
+                ConsoleHelper.WriteLine($"WARNING: {message}");
                 return batteryPercent > 15;
             }
 
             if (!MainConsole.showUI || batteryPercent <= 15)
             {
-                MainConsole.WriteLine($"WARNING: {message}");
+                ConsoleHelper.WriteLine($"WARNING: {message}");
                 return false;
             }
 

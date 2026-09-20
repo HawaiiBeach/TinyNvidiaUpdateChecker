@@ -42,7 +42,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
             catch (Exception ex) when (ex is ManagementException or COMException or UnauthorizedAccessException)
             {
-                if (MainConsole.debug) MainConsole.WriteLine("Chassis type could not be determined.");
+                if (MainConsole.debug) ConsoleHelper.WriteLine("Chassis type could not be determined.");
             }
 
             return false;
@@ -107,7 +107,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
             catch (Exception ex) when (ex is ManagementException or COMException or UnauthorizedAccessException)
             {
-                MainConsole.WriteLine("Video controller information could not be read.");
+                ConsoleHelper.WriteLine("Video controller information could not be read.");
             }
 
             int gpuCount = gpuList.Where(x => x.isValidated).Count();
@@ -158,17 +158,17 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
 
             // No valid GPU was found
-            MainConsole.Write("ERROR!");
-            MainConsole.WriteLine();
-            MainConsole.WriteLine("No NVIDIA GPU was detected on this system.");
-            MainConsole.WriteLine("Found GPUs:");
+            ConsoleHelper.Write("ERROR!");
+            ConsoleHelper.WriteLine();
+            ConsoleHelper.WriteLine("No NVIDIA GPU was detected on this system.");
+            ConsoleHelper.WriteLine("Found GPUs:");
 
             foreach (GPU gpu in gpuList)
             {
-                MainConsole.WriteLine($"GPU Name: '{gpu.name}' | VendorId: {gpu.vendorId} | DeviceId: {gpu.deviceId} | IsNotebook: {gpu.isNotebook}");
+                ConsoleHelper.WriteLine($"GPU Name: '{gpu.name}' | VendorId: {gpu.vendorId} | DeviceId: {gpu.deviceId} | IsNotebook: {gpu.isNotebook}");
             }
 
-            MainConsole.WriteLine();
+            ConsoleHelper.WriteLine();
 
             // Return no GPU
             return null;

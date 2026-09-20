@@ -40,12 +40,18 @@ public class NewMetadataHandler
 {
     private static CombinedGpuData _combinedGpuData;
 
+    private static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public static bool LoadCombinedJsonData()
     {
         try
         {
             string jsonString = MainConsole.SendGetRequest(MainConsole.experimentalGpuMetadataRepo);
-            _combinedGpuData = JsonSerializer.Deserialize<CombinedGpuData>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _combinedGpuData = JsonSerializer.Deserialize<CombinedGpuData>(jsonString, jsonOptions);
+
             return _combinedGpuData?.devices != null && _combinedGpuData.versions != null;
         }
         catch
@@ -239,7 +245,7 @@ public class NewMetadataHandler
             }
 
             // Sanitize
-            HtmlSanitizer sanitizer = new HtmlSanitizer();
+            HtmlSanitizer sanitizer = new();
             string sanitizedHtml = sanitizer.Sanitize(limitedHtml);
 
             string finalHtml = $"<html><head><meta charset=\"UTF-8\"></head><body>{sanitizedHtml}</body></html>";

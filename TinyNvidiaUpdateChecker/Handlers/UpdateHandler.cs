@@ -12,7 +12,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
     {
         public static void SearchForUpdate(string[] args)
         {
-            Console.Write("Searching for Update . . . ");
+            ConsoleHelper.Write("Searching for Update . . . ");
 
             try {
                 string response = MainConsole.SendGetRequest(MainConsole.updateUrl);
@@ -24,11 +24,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 string serverHash = exeFile.digest[7..];
                 string changelog = release.body;
 
-                Console.Write("OK!");
-                Console.WriteLine();
+                ConsoleHelper.Write("OK!");
+                ConsoleHelper.WriteLine();
 
                 if (new Version(MainConsole.onlineVer).CompareTo(new Version(MainConsole.offlineVer)) > 0) {
-                    Console.WriteLine("There is a update available for TinyNvidiaUpdateChecker!");
+                    ConsoleHelper.WriteLine("There is a update available for TinyNvidiaUpdateChecker!");
 
                     if (!MainConsole.confirmDL && !MainConsole.dryRun) {
                         TaskDialogButton[] buttons = [
@@ -45,15 +45,15 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 }
             } catch (Exception) {
                 MainConsole.onlineVer = "0.0.0";
-                Console.WriteLine("Update check unavailable, continuing without client update.");
+                ConsoleHelper.WriteLine("Update check unavailable, continuing without client update.");
             }
 
             if (MainConsole.debug) {
-                Console.WriteLine($"offlineVer: {MainConsole.offlineVer}");
-                Console.WriteLine($"onlineVer:  {MainConsole.onlineVer}");
+                ConsoleHelper.WriteLine($"offlineVer: {MainConsole.offlineVer}");
+                ConsoleHelper.WriteLine($"onlineVer:  {MainConsole.onlineVer}");
             }
 
-            Console.WriteLine();
+            ConsoleHelper.WriteLine();
         }
 
         private static void UpdateNow(string[] args, string downloadUrl, string serverHash)
@@ -67,42 +67,42 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 File.Move(currentExe, backupExe, true);
                 movedToBackup = true;
 
-                Console.WriteLine();
-                Console.Write("Downloading update . . . ");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.Write("Downloading update . . . ");
 
                 MainConsole.HandleDownload(downloadUrl, tempFile).GetAwaiter().GetResult();
 
-                Console.WriteLine("OK!");
-                Console.Write("Validating checksum . . . ");
+                ConsoleHelper.WriteLine("OK!");
+                ConsoleHelper.Write("Validating checksum . . . ");
 
                 // Validate checksum SHA256
                 string tempHash = CalculateSHA256(tempFile);
 
                 if (tempHash != null && tempHash == serverHash) {
-                    Console.WriteLine("OK!");
-                    Console.WriteLine();
+                    ConsoleHelper.WriteLine("OK!");
+                    ConsoleHelper.WriteLine();
 
                     File.Move(tempFile, currentExe);
-                    Console.WriteLine("Relaunching now!");
+                    ConsoleHelper.WriteLine("Relaunching now!");
 
                     string runArgs = string.Join(" ", args) + " --cleanup-update";
                     Process.Start(new ProcessStartInfo(currentExe) { UseShellExecute = true, Arguments = runArgs });
                     Environment.Exit(0);
                 }
 
-                Console.WriteLine("ERROR!");
-                Console.WriteLine("Checksum mismatch!");
-                Console.WriteLine();
-                Console.WriteLine($"Calculated Hash: {tempHash}");
-                Console.WriteLine($"Server Hash:     {serverHash}");
+                ConsoleHelper.WriteLine("ERROR!");
+                ConsoleHelper.WriteLine("Checksum mismatch!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine($"Calculated Hash: {tempHash}");
+                ConsoleHelper.WriteLine($"Server Hash:     {serverHash}");
             } catch (UnauthorizedAccessException) {
-                Console.WriteLine("ERROR!");
-                Console.WriteLine();
-                Console.WriteLine("Access to update the current TNUC installation was denied due to unauthorized access. Please rerun TNUC as admin, or update manually.");
+                ConsoleHelper.WriteLine("ERROR!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("Access to update the current TNUC installation was denied due to unauthorized access. Please rerun TNUC as admin, or update manually.");
             } catch (Exception ex) {
-                Console.WriteLine("ERROR!");
-                Console.WriteLine();
-                Console.WriteLine(ex.ToString());
+                ConsoleHelper.WriteLine("ERROR!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine(ex.ToString());
             } finally {
                 // Remove temp file if not deleted by updater
                 if (File.Exists(tempFile)) {
@@ -115,30 +115,26 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 }
             }
 
-            Console.WriteLine("Automatic update failed, please update manually.");
-            Console.WriteLine();
+            ConsoleHelper.WriteLine("Automatic update failed, please update manually.");
+            ConsoleHelper.WriteLine();
         }
 
         public static string CalculateSHA256(string filePath)
         {
-            using (SHA256 sha256 = SHA256.Create())
+            using SHA256 sha256 = SHA256.Create();
+            try
             {
-                try
-                {
-                    using (FileStream stream = File.OpenRead(filePath))
-                    {
-                        string hash = BitConverter.ToString(sha256.ComputeHash(stream))
-                            .Replace("-", "")
-                            .ToLowerInvariant();
-                        return hash;
-                    }
-                }
-                catch
-                {
-                    Console.WriteLine("ERROR");
-                    Console.WriteLine();
-                    return null;
-                }
+                using FileStream stream = File.OpenRead(filePath);
+                string hash = BitConverter.ToString(sha256.ComputeHash(stream))
+                    .Replace("-", "")
+                    .ToLowerInvariant();
+                return hash;
+            }
+            catch
+            {
+                ConsoleHelper.WriteLine("ERROR");
+                ConsoleHelper.WriteLine();
+                return null;
             }
         }
     }

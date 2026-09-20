@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Don't allow unattended execution when config isn't set up (Author: @TanoINA)
+- Optimized internal Windows calls for faster startup and slightly lower resource usage (Replaced DllImport with LibraryImport)
 
 ## [1.28.0] - 2026-09-18
 ### Added

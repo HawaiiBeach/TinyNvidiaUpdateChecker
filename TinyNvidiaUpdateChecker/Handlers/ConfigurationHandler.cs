@@ -44,7 +44,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
             AppDomain.CurrentDomain.SetData("APP_CONFIG_FILE", configFilePath);
 
             if (MainConsole.debug) {
-                Console.WriteLine($"configFile: {configFilePath}");
+                ConsoleHelper.WriteLine($"configFile: {configFilePath}");
             }
 
             // Only migrate if not using override
@@ -55,18 +55,18 @@ namespace TinyNvidiaUpdateChecker.Handlers
  
             // create config file
             if (!File.Exists(configFilePath)) {
-                Console.WriteLine("Generating configuration file.");
+                ConsoleHelper.WriteLine("Generating configuration file.");
 
                 SetupSetting("Check for Updates");
                 SetupSetting("Minimal install");
                 SetupSetting("Driver type");
 
-                Console.WriteLine();
+                ConsoleHelper.WriteLine();
             }
 
             VerifyConfig();
 
-            if (MainConsole.debug) Console.WriteLine();
+            if (MainConsole.debug) ConsoleHelper.WriteLine();
         }
 
         /// <summary>
@@ -79,9 +79,9 @@ namespace TinyNvidiaUpdateChecker.Handlers
             string DRIVER_TYPE = ReadSetting("Driver type");
 
             if (MainConsole.debug) {
-                Console.WriteLine($"CHECK_UPDATE: {CHECK_UPDATE}");
-                Console.WriteLine($"MINIMAL_INSTALL: {MINIMAL_INSTALL}");
-                Console.WriteLine($"DRIVER_TYPE: {DRIVER_TYPE}");
+                ConsoleHelper.WriteLine($"CHECK_UPDATE: {CHECK_UPDATE}");
+                ConsoleHelper.WriteLine($"MINIMAL_INSTALL: {MINIMAL_INSTALL}");
+                ConsoleHelper.WriteLine($"DRIVER_TYPE: {DRIVER_TYPE}");
             }
         }
 
@@ -101,8 +101,8 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     result = SetupSetting(key, data);
                 }
             } catch (ConfigurationErrorsException ex) {
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine();
+                ConsoleHelper.WriteLine(ex.ToString());
+                ConsoleHelper.WriteLine();
             }
 
             return result;
@@ -134,13 +134,13 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     try {
                         File.Delete(configFilePath);
                     } catch (Exception e) {
-                        Console.WriteLine(e.ToString());
+                        ConsoleHelper.WriteLine(e.ToString());
                     }
                 }
 
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine();
-                Console.WriteLine("The config file has been wiped due to a possible syntax error, please run the application again and setup your values.");
+                ConsoleHelper.WriteLine(ex.ToString());
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("The config file has been wiped due to a possible syntax error, please run the application again and setup your values.");
                 if (!MainConsole.confirmDL && MainConsole.showUI)
                 {
                     try { Console.ReadKey(true); }
@@ -191,6 +191,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 {
                     if (!MainConsole.confirmDL)
                         throw new InvalidOperationException("Select a GPU interactively before running unattended.");
+
                     using GPUSelectorForm gpuForm = new();
                     value = gpuForm.OpenForm(data);
                     break;
@@ -200,7 +201,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 {
                     using ComponentChooserForm componentForm = new();
                     (List<string> components, _) = componentForm.OpenForm((List<Component>)data);
-                    string formattedComponents = string.Join(", ", components.ToArray());
+                    string formattedComponents = string.Join(", ", components);
                     value = formattedComponents;
                     break;
                 }
@@ -272,20 +273,20 @@ namespace TinyNvidiaUpdateChecker.Handlers
             {
                 try
                 {
-                    MainConsole.Write("Migrating configuration directory . . . ");
+                    ConsoleHelper.Write("Migrating configuration directory . . . ");
                     Directory.Move(oldConfigDirectoryPath, configDirectoryPath);
 
                     string parentDirectory = Directory.GetParent(oldConfigDirectoryPath).FullName;
                     Directory.Delete(parentDirectory);
-                    MainConsole.Write("OK!");
-                    MainConsole.WriteLine();
+                    ConsoleHelper.Write("OK!");
+                    ConsoleHelper.WriteLine();
                 }
                 catch (Exception ex)
                 {
-                    MainConsole.Write("ERROR!");
-                    MainConsole.WriteLine();
-                    MainConsole.WriteLine($"Failed to migrate configuration: {ex.Message}");
-                    MainConsole.WriteLine();
+                    ConsoleHelper.Write("ERROR!");
+                    ConsoleHelper.WriteLine();
+                    ConsoleHelper.WriteLine($"Failed to migrate configuration: {ex.Message}");
+                    ConsoleHelper.WriteLine();
                 }
             }
         }

@@ -259,21 +259,21 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
             catch (ArgumentOutOfRangeException)
             {
-                MainConsole.Write("ERROR!");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine("No NVIDIA driver was found for your system configuration.");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine("Debugging information:");
-                MainConsole.WriteLine($"pfId: {pfId}");
-                MainConsole.WriteLine($"osId: {osId}");
+                ConsoleHelper.Write("ERROR!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("No NVIDIA driver was found for your system configuration.");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("Debugging information:");
+                ConsoleHelper.WriteLine($"pfId: {pfId}");
+                ConsoleHelper.WriteLine($"osId: {osId}");
             }
             catch (Exception ex)
             {
-                MainConsole.Write("ERROR!");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine("Unable to interact with NVIDIA API.");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine(ex.ToString());
+                ConsoleHelper.Write("ERROR!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("Unable to interact with NVIDIA API.");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine(ex.ToString());
             }
 
             return null;
@@ -369,11 +369,11 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
             if (osId == 0)
             {
-                MainConsole.Write("ERROR!");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine("No NVIDIA driver was found for this operating system configuration. Make sure TNUC is updated.");
-                MainConsole.WriteLine();
-                MainConsole.WriteLine($"osVersion: {osVersion}");
+                ConsoleHelper.Write("ERROR!");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine("No NVIDIA driver was found for this operating system configuration. Make sure TNUC is updated.");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.WriteLine($"osVersion: {osVersion}");
             }
 
             return osId;

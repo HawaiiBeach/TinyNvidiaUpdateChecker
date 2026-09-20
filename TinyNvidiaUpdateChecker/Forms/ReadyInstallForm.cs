@@ -38,8 +38,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
                 try
                 {
-                    MainConsole.WriteLine();
-                    MainConsole.Write("Executing driver installer . . . ");
+                    ConsoleHelper.WriteLine();
+                    ConsoleHelper.Write("Executing driver installer . . . ");
 
                     ProcessStartInfo startInfo = new(driverPath)
                     {
@@ -54,16 +54,16 @@ namespace TinyNvidiaUpdateChecker.Forms
                     if (installer.ExitCode != 0)
                         throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}");
 
-                    MainConsole.Write("OK!");
+                    ConsoleHelper.Write("OK!");
                 }
                 catch (Exception ex)
                 {
-                    MainConsole.WriteLine($"Installation failed: {ex.Message}");
-                    MainConsole.WriteLine();
-                    MainConsole.callExit(1);
+                    ConsoleHelper.WriteLine($"Installation failed: {ex.Message}");
+                    ConsoleHelper.WriteLine();
+                    MainConsole.CallExit(1);
                 }
 
-                MainConsole.WriteLine();
+                ConsoleHelper.WriteLine();
 
                 string folderPath = Path.GetDirectoryName(driverPath);
 
@@ -72,11 +72,11 @@ namespace TinyNvidiaUpdateChecker.Forms
                     try
                     {
                         Directory.Delete(folderPath, true);
-                        MainConsole.WriteLine($"Cleaned up: {folderPath}");
+                        ConsoleHelper.WriteLine($"Cleaned up: {folderPath}");
                     }
                     catch
                     {
-                        MainConsole.WriteLine($"Could not cleanup: {folderPath}");
+                        ConsoleHelper.WriteLine($"Could not cleanup: {folderPath}");
                     }
                 }
             }
@@ -133,8 +133,8 @@ namespace TinyNvidiaUpdateChecker.Forms
 
             try
             {
-                MainConsole.WriteLine();
-                MainConsole.Write("Executing driver installer . . . ");
+                ConsoleHelper.WriteLine();
+                ConsoleHelper.Write("Executing driver installer . . . ");
 
                 ProcessStartInfo startInfo = new(driverPath)
                 {
@@ -148,16 +148,16 @@ namespace TinyNvidiaUpdateChecker.Forms
                     throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}.");
 
                 hasRunInstaller = true;
-                MainConsole.Write("OK!");
-                MainConsole.WriteLine();
+                ConsoleHelper.Write("OK!");
+                ConsoleHelper.WriteLine();
                 runBtn.Enabled = false;
                 Focus();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Installation failed: {ex.Message}", "TinyNvidiaUpdateChecker", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                MainConsole.Write("ERROR!");
-                MainConsole.WriteLine();
+                ConsoleHelper.Write("ERROR!");
+                ConsoleHelper.WriteLine();
             }
             finally
             {
