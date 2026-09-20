@@ -257,7 +257,7 @@ namespace TinyNvidiaUpdateChecker
 
             if ((updateAvailable || forceDL) && !dryRun) {
                 if (confirmDL) {
-                    DownloadDriverQuiet(latestDriver, true);
+                    DownloadDriverQuiet(latestDriver);
                 } else {
                     PromptAvailableUpdate(nvidiaDrivers, releaseNotes);
                 }
@@ -375,8 +375,7 @@ namespace TinyNvidiaUpdateChecker
 
             // Show installer
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
-
-            ReadyInstallForm.handleInstall(fileName, false, tempFiles);
+            ReadyInstallForm.handleInstall(fileName, tempFiles);
 
             callExit(0);
         }
@@ -648,11 +647,11 @@ namespace TinyNvidiaUpdateChecker
                     if (MakeInstaller(false, savePath, driverFileName) == null)
                     {
                         string driverPath = Path.Combine(savePath, driverFileName);
-                        ReadyInstallForm.handleInstall(driverPath, false, [driverFileName], true);
+                        ReadyInstallForm.handleInstall(driverPath, [driverFileName], true);
                     }
                 }
             } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALL) {
-                DownloadDriverQuiet(selectedVersion, confirmDL);
+                DownloadDriverQuiet(selectedVersion);
                 
             } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALLCUSTOM) {
                 string title = "Choose download location";
@@ -672,7 +671,7 @@ namespace TinyNvidiaUpdateChecker
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     string savePath = Path.TrimEndingDirectorySeparator(dialog.SelectedPath) + Path.DirectorySeparatorChar;
-                    DownloadDriverQuiet(selectedVersion, confirmDL, savePath, true);
+                    DownloadDriverQuiet(selectedVersion, savePath, true);
                 }
                 else
                 {
@@ -685,7 +684,7 @@ namespace TinyNvidiaUpdateChecker
         /// <summary>
         /// Downloads and installs the driver without user interaction
         /// </summary>
-        private static void DownloadDriverQuiet(NvidiaDriver nvidiaDriver, bool minimized, string overrideDownloadLocation = null, bool keepDriver = false)
+        private static void DownloadDriverQuiet(NvidiaDriver nvidiaDriver, string overrideDownloadLocation = null, bool keepDriver = false)
         {
             if (!PowerHandler.ConfirmHeavyOperation("installing a driver"))
             {
@@ -740,7 +739,7 @@ namespace TinyNvidiaUpdateChecker
 
             if (minimalInstaller) {
                 // Perform minimal install
-                string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
+                string[] minimalInstallTempFiles = MakeInstaller(confirmDL, FULL_PATH_DIRECTORY, driverFileName);
 
                 // Add minimal temp files
                 if (minimalInstallTempFiles != null) {
@@ -754,7 +753,7 @@ namespace TinyNvidiaUpdateChecker
             string fileName = minimalInstaller ? FULL_PATH_DIRECTORY + "setup.exe" : FULL_PATH_DRIVER;
 
             // Handle driver install
-            ReadyInstallForm.handleInstall(fileName, minimized, tempFiles, keepDriver);
+            ReadyInstallForm.handleInstall(fileName, tempFiles, keepDriver);
         }
 
         /// <summary>

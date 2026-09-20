@@ -25,18 +25,17 @@ namespace TinyNvidiaUpdateChecker.Forms
             InitializeComponent();
         }
 
-        public static void handleInstall(string driverPath, bool minimized, List<string> tempFiles, bool keepDriver = false)
+        public static void handleInstall(string driverPath, List<string> tempFiles, bool keepDriver = false)
         {
-            if (!minimized)
+            if (!MainConsole.confirmDL)
             {
                 using ReadyInstallForm form = new(driverPath, tempFiles);
                 form.ShowDialog();
             }
             else
             {
-                // Quiet mode does not show this UI
-                // Might change the behaviour in the future. Installing a GPU driver without user interaction is weird
-                // TODO this should only be the path for confirm DL, not for quiet mode.
+                // confirmDL-mode does not show UI, just force-installs driver
+
                 try
                 {
                     MainConsole.WriteLine();
