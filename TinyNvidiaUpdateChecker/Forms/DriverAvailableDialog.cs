@@ -185,6 +185,7 @@ namespace TinyNvidiaUpdateChecker
                 {
                     (long fileSize, DateTime releaseDate) = await Task.Run(() => MainConsole.GetDriverMetadataFromNvidia(driver.downloadUrl));
                     driver.releaseDate = releaseDate;
+                    driver.fileSize = fileSize;
                     driver.fileSizeEst = fileSize >= 0 ? Math.Round(fileSize / 1024d / 1024d) + " MiB" : "unknown";
                 }
                 catch (Exception ex)

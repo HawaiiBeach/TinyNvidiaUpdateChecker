@@ -605,9 +605,12 @@ namespace TinyNvidiaUpdateChecker
                     string finalPath = savePath + driverFileName;
 
                     // Get file size from NVIDIA server
-                    (long fileSize,_) = GetDriverMetadataFromNvidia(selectedVersion.downloadUrl);
+                    if (selectedVersion.fileSize == 0)
+                    {
+                        (selectedVersion.fileSize, selectedVersion.releaseDate) = GetDriverMetadataFromNvidia(selectedVersion.downloadUrl);
+                    }
 
-                    if (File.Exists(finalPath) && !DoesDriverFileSizeMatch(finalPath, fileSize)) {
+                    if (File.Exists(finalPath) && !DoesDriverFileSizeMatch(finalPath, selectedVersion.fileSize)) {
                         File.Delete(finalPath);
                     }
 
@@ -698,9 +701,12 @@ namespace TinyNvidiaUpdateChecker
             Directory.CreateDirectory(FULL_PATH_DIRECTORY);
 
             // Get file size from NVIDIA server
-            (long fileSize,_) = GetDriverMetadataFromNvidia(nvidiaDriver.downloadUrl);
+            if (nvidiaDriver.fileSize == 0)
+            {
+                (nvidiaDriver.fileSize, nvidiaDriver.releaseDate) = GetDriverMetadataFromNvidia(nvidiaDriver.downloadUrl);
+            }
 
-            if (File.Exists(FULL_PATH_DRIVER) && !DoesDriverFileSizeMatch(FULL_PATH_DRIVER, fileSize)) {
+            if (File.Exists(FULL_PATH_DRIVER) && !DoesDriverFileSizeMatch(FULL_PATH_DRIVER, nvidiaDriver.fileSize)) {
                 File.Delete(savePath + driverFileName);
             }
 
