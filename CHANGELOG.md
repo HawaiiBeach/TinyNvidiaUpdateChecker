@@ -5,16 +5,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- 5-minute timeout for driver extraction (Author: @TanoINA)
+
 ### Fixed
-- Fixed driver extraction failure on paths containing spaces or Unicode characters (#276)
-- Fixed notebook driver recommendation for mobile GPUs configured with Game Ready Drivers
-- Fixed segmented downloader file sharing mode to enable full parallel downloads
-- Fixed crash when requested driver family is absent from API results
-- Fixed potential UI thread deadlock during download
-- Added 5-minute timeout and automatic cleanup for driver extraction
-- Added download cancellation when closing the download window
-- Fixed unified Studio driver selection on mobile GPUs and fallback when no driver is marked recommended
-- Hardened metadata fallbacks, version parsing, component parsing, archiver timeouts, and unattended execution
+- Minimal install failing on paths containing spaces or unicode characters (Author: @TanoINA)
+- Notebook driver recommendation for mobile GPUs (experimental metadata) (Author: @TanoINA)
+- Allowed segmented downloader parallel downloads (Author: @TanoINA)
+- Crashes when no drivers were found (Author: @TanoINA)
+- Fixed potential UI thread deadlock during download (Author: @TanoINA)
+- Fixed many edge cases for components handling (Author: @TanoINA)
+- Cancel execution when closing visual progress bar (edge case) (Author: @TanoINA)
+- Experimental metadata no longer freezes whilst retrieving release date (Author: @TanoINA)
+
+### Changed
+- Don't allow unattended execution when config isn't set up (Author: @TanoINA)
 
 ## [1.28.0] - 2026-09-18
 ### Added
