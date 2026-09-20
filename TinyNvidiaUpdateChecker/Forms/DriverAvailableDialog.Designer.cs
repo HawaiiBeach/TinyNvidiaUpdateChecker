@@ -173,7 +173,6 @@ namespace TinyNvidiaUpdateChecker
             webBrowser1.Size = new System.Drawing.Size(289, 230);
             webBrowser1.TabIndex = 4;
             webBrowser1.WebBrowserShortcutsEnabled = false;
-            webBrowser1.DocumentCompleted += webBrowser1_DocumentCompleted;
             // 
             // driverLabel
             // 

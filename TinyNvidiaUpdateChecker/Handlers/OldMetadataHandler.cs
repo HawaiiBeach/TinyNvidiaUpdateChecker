@@ -30,21 +30,21 @@ namespace TinyNvidiaUpdateChecker.Handlers
         /// <summary>
         /// Finds the GPU, the version and queries up to date information
         /// </summary>
-        public static (List<NvidiaDriver> nvidiaDrivers, string error, string releaseNotes) GetDriverMetadata(GPU gpu, string driverType)
+        public static (List<NvidiaDriver> nvidiaDrivers, string error) GetDriverMetadata(GPU gpu, string driverType)
         {
             // Populate pfId from ZenitH-AT's nvidia-data
             (gpu, bool success) = PopulateGpuMetadata(gpu);
 
-            if (!success) return (null, "Could not lookup GPU in ZenitH-AT's nvidia-data repo", null);
+            if (!success) return (null, "Could not lookup GPU in ZenitH-AT's nvidia-data repo");
             int osId = GetOsId();
-            if (osId == 0) return (null, "No matching operating system was found in the metadata.", null);
+            if (osId == 0) return (null, "No matching operating system was found in the metadata.");
 
             // Use AJAX API
-            (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetDriverInfo(gpu, osId, driverType);
-            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "NVIDIA Ajax API returned no found driver.", null);
+            List<NvidiaDriver> nvidiaDrivers = GetDriverInfo(gpu, osId, driverType);
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0) return (null, "NVIDIA Ajax API returned no found driver.");
 
             // Return found
-            return (nvidiaDrivers, null, releaseNotes);
+            return (nvidiaDrivers, null);
         }
 
         // Uses ZenitH-AT's nvidia-data repo to get pfId from GPU name
@@ -124,12 +124,14 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
         }
 
-        public static (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) GetDriverInfo(GPU gpu, int osId, string driverType)
+        public static List<NvidiaDriver> GetDriverInfo(GPU gpu, int osId, string driverType)
         {
             List<NvidiaDriver> nvidiaDrivers = new();
-            int recommendedDriverIdx = -1;
+            bool setRecommendedDriver = false;
             JArray driversFound = GetDriversFromNvidiaAjax(gpu.pfId, osId);
-            if (driversFound == null || driversFound.Count == 0) return (null, null);
+            if (driversFound == null || driversFound.Count == 0) return null;
+            HtmlSanitizer sanitizer = new();
+            HtmlDocument htmlDocument = new();
 
             // Driver type (upCRD)
             // - 0 is Game Ready Driver (GRD), and/or notebook, and/or quadro (RTX enterprise)
@@ -149,8 +151,10 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(downloadUrl, isFeaturePreview);
 
                 // Extract PDF URL from OtherNotes
-                string otherNotes = Uri.UnescapeDataString(driver["OtherNotes"].ToString());
-                string pdfUrl = ExtractPdfUrlFromNotes(otherNotes);
+                string pdfUrl = ExtractPdfUrlFromNotes(htmlDocument, driver["OtherNotes"].ToString());
+
+                // Extract release notes
+                string releaseNotes = ExtractReleaseNotes(htmlDocument, sanitizer, driver["ReleaseNotes"].ToString());
 
                 NvidiaDriver driverObj = new()
                 {
@@ -161,13 +165,14 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     downloadUrl = downloadUrl,
                     pdfUrl = pdfUrl,
                     fileSizeEst = driver["DownloadURLFileSize"].ToString(),
+                    releaseNotes = releaseNotes,
                     releaseDate = DateTime.Parse(driver["ReleaseDateTime"].ToString())
                 };
 
                 // Set recommended driver if unset, and the driver matches driverType
-                if (recommendedDriverIdx == -1 && driver["IsCRD"].ToString() == driverTypeInt.ToString())
+                if (!setRecommendedDriver && driver["IsCRD"].ToString() == driverTypeInt.ToString())
                 {
-                    recommendedDriverIdx = i;
+                    setRecommendedDriver = true;
                     driverObj.recommended = true;
                 }
 
@@ -175,17 +180,23 @@ namespace TinyNvidiaUpdateChecker.Handlers
             }
 
             // No found driver
-            if (recommendedDriverIdx == -1) return (null, null);
+            if (!setRecommendedDriver) return null;
 
-            // Get raw release notes
-            JObject downloadInfo = (JObject)driversFound[recommendedDriverIdx]["downloadInfo"];
-            string tempNotes = Uri.UnescapeDataString(downloadInfo["ReleaseNotes"].ToString());
+            return nvidiaDrivers;
+        }
+
+        private static string ExtractReleaseNotes(HtmlDocument htmlDocument, HtmlSanitizer sanitizer, string rawReleaseNotes)
+        {
+            string unescapedRelease = Uri.UnescapeDataString(rawReleaseNotes);
+
+            // Remove hardcoded NVIDIA Studio Drivers intro text
+            string studioIntroPattern = @"NVIDIA Studio Drivers provide artists[\s\S]*?<b>Applications</b>(\s*<br\s*/?>)*";
+            unescapedRelease = Regex.Replace(unescapedRelease, studioIntroPattern, string.Empty, RegexOptions.IgnoreCase);
 
             // Load release notes
-            HtmlAgilityPack.HtmlDocument htmlDocument = new();
-            htmlDocument.LoadHtml(tempNotes);
+            htmlDocument.LoadHtml(unescapedRelease);
 
-            // Remove image nodes
+            // Remove all images
             var nodes = htmlDocument.DocumentNode.SelectNodes("//img");
             if (nodes != null && nodes.Count > 0)
             {
@@ -195,27 +206,40 @@ namespace TinyNvidiaUpdateChecker.Handlers
             // Remove all links
             try
             {
-                var hrefNodes = htmlDocument.DocumentNode.SelectNodes("//a").Where(x => x.Attributes.Contains("href"));
-                foreach (var child in hrefNodes) child.Remove();
+                var hrefNodes = htmlDocument.DocumentNode.SelectNodes("//a[@href]");
+                if (hrefNodes != null)
+                {
+                    foreach (var child in hrefNodes) child.Remove();
+                }
             }
             catch { }
 
+            // Remove empty paragraph tags
+            var emptyParagraphs = htmlDocument.DocumentNode.SelectNodes("//p[not(normalize-space()) and not(*)]");
+            if (emptyParagraphs != null)
+            {
+                foreach (HtmlNode child in emptyParagraphs) child.Remove();
+            }
+
             // Save the cleaned release notes
-            tempNotes = htmlDocument.DocumentNode.OuterHtml;
+            string tempNotes = htmlDocument.DocumentNode.OuterHtml;
 
-            // Sanitize tempNotes and set releaseNotes
-            HtmlSanitizer sanitizer = new();
-            string releaseNotes = sanitizer.Sanitize(tempNotes);
+            // Remove trailing dots, whitespace, and line breaks only at the end of the text
+            tempNotes = Regex.Replace(tempNotes, @"(<br\s*/?>|[\.\s\t])+$", string.Empty, RegexOptions.IgnoreCase);
 
-            return (nvidiaDrivers, releaseNotes);
+            // Sanitize
+            string sanitized = sanitizer.Sanitize(tempNotes);
+
+            return sanitized.Trim();
         }
 
         // Extracts driver PDF URL from NVIDIA OtherNotes
-        private static string ExtractPdfUrlFromNotes(string otherNotes)
+        private static string ExtractPdfUrlFromNotes(HtmlDocument htmlDocument, string otherNotes)
         {
-            // Load otherNotes into HtmlAgilityPack
-            HtmlAgilityPack.HtmlDocument htmlDocument = new();
-            htmlDocument.LoadHtml(otherNotes);
+            string unescapedNotes = Uri.UnescapeDataString(otherNotes);
+
+            // Load unescapedNotes into HtmlAgilityPack
+            htmlDocument.LoadHtml(unescapedNotes);
 
             IEnumerable<HtmlNode> node = htmlDocument.DocumentNode.Descendants("a").Where(x => x.Attributes.Contains("href"));
 

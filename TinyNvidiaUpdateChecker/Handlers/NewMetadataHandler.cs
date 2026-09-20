@@ -248,8 +248,7 @@ public class NewMetadataHandler
             HtmlSanitizer sanitizer = new();
             string sanitizedHtml = sanitizer.Sanitize(limitedHtml);
 
-            string finalHtml = $"<html><head><meta charset=\"UTF-8\"></head><body>{sanitizedHtml}</body></html>";
-            return finalHtml;
+            return sanitizedHtml;
         }
         catch
         {

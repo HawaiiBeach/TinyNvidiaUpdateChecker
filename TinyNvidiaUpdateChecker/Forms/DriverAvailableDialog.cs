@@ -17,7 +17,7 @@ namespace TinyNvidiaUpdateChecker
         NvidiaDriver selectedDriver;
         List<NvidiaDriver> nvidiaDrivers;
         string releaseNotes;
-        float notesScale;
+        bool updateReleaseNotes = true;
 
         public DriverAvailableDialog(List<NvidiaDriver> nvidiaDrivers, string releaseNotes)
         {
@@ -41,9 +41,6 @@ namespace TinyNvidiaUpdateChecker
 
         private void DriverDialog_Load(object sender, EventArgs e)
         {
-            webBrowser1.DocumentText = releaseNotes;
-            notesScale = DeviceDpi;
-
             // Add each driver and assign uiIdx
             foreach (NvidiaDriver driver in this.nvidiaDrivers)
             {
@@ -96,22 +93,6 @@ namespace TinyNvidiaUpdateChecker
             {
                 ConsoleHelper.WriteLine(ex.ToString());
             }
-        }
-
-        private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
-        {
-            webBrowser1.Document.ExecCommand("SelectAll", false, "null");
-            webBrowser1.Document.ExecCommand("FontName", false, "Microsoft Sans Serif");
-            if (notesScale > 96)
-            {
-                webBrowser1.Document.ExecCommand("FontSize", false, 1);
-            }
-            else
-            {
-                webBrowser1.Document.ExecCommand("FontSize", false, 2);
-            }
-
-            webBrowser1.Document.ExecCommand("Unselect", false, "null");
         }
 
         private void IgnoreBtn_Click(object sender, EventArgs e)
@@ -175,7 +156,6 @@ namespace TinyNvidiaUpdateChecker
             if (selectedDriver == null) return;
 
             NvidiaDriver driver = selectedDriver;
-            sizeLabel.Text = $"Size: {driver.fileSizeEst}";
 
             // If selected driver is missing release date & file size (caused by experimental metadata)
             if (selectedDriver.releaseDate == DateTime.MinValue)
@@ -226,6 +206,40 @@ namespace TinyNvidiaUpdateChecker
                 int months = dateDiff / 30;
                 releasedLabelStr = months == 1 ? "1 month ago" : $"{months} months ago";
             }
+
+            // Set release description
+            // NOTE: Experimental metadata doesn't support individual release notes
+            if (updateReleaseNotes)
+            {
+                if (webBrowser1.Document == null)
+                {
+                    webBrowser1.Navigate("about:blank");
+                    while (webBrowser1.ReadyState != WebBrowserReadyState.Complete)
+                    {
+                        Application.DoEvents();
+                    }
+                }
+
+                // Smaller font size for high DPI displays
+                string fontSize = DeviceDpi > 96 ? "8pt" : "10pt";
+
+                // Format html with inline styles
+                string styledHtml = $@"<html>
+                    <head><meta charset='UTF-8'></head>
+                    <body style='font-family: ""Microsoft Sans Serif""; font-size: {fontSize};'>
+                        {selectedDriver.releaseNotes ?? releaseNotes}
+                    </body>
+                </html>";
+
+                // Set new release notes
+                webBrowser1.Document.OpenNew(true);
+                webBrowser1.Document.Write(styledHtml);
+                webBrowser1.Refresh();
+            }
+
+            // Don't update release notes if relying on global releaseNotes (applies to experimental metadata)
+            if (selectedDriver.releaseNotes == null && updateReleaseNotes)
+                updateReleaseNotes = false;
 
             toolTip1.SetToolTip(releasedLabel, selectedDriver.releaseDate.ToShortDateString());
             releasedLabel.Text = $"Released: {releasedLabelStr}";

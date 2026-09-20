@@ -30,6 +30,7 @@ public class NvidiaDriver
     public string fileSizeEst { get; set; }
     public string downloadUrl { get; set; }
     public string pdfUrl { get; set; }
+    public string releaseNotes { get; set; }
     public DateTime releaseDate { get; set; }
     public bool recommended { get; set; }
     public int uiIdx { get; set; }

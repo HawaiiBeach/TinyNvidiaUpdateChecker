@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Individual driver release notes (does not apply to experimental metadata)
 - 5-minute timeout for driver extraction (Author: @TanoINA)
 
 ### Fixed
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Don't allow unattended execution when config isn't set up (Author: @TanoINA)
 - Optimized internal Windows calls for faster startup and slightly lower resource usage (Replaced DllImport with LibraryImport)
+- Improved driver release notes: don't show Studio driver intro, and fixed leftover whitespaces at the bottom (applies to old metadata)
 
 ## [1.28.0] - 2026-09-18
 ### Added

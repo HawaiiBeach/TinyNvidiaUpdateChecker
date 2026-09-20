@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -229,7 +228,7 @@ namespace TinyNvidiaUpdateChecker
         private static (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) GetGpuMetadata(GPU gpu, string driverType, bool useExperimental, bool secondAttempt)
         {
             List<NvidiaDriver> nvidiaDrivers;
-            string error, releaseNotes;
+            string error, releaseNotes = null;
 
             try
             {
@@ -240,7 +239,7 @@ namespace TinyNvidiaUpdateChecker
                 else
                 {
                     OldMetadataHandler.PrepareCache();
-                    (nvidiaDrivers, error, releaseNotes) = OldMetadataHandler.GetDriverMetadata(gpu, driverType);
+                    (nvidiaDrivers, error) = OldMetadataHandler.GetDriverMetadata(gpu, driverType);
                 }
             }
             catch (Exception ex)
