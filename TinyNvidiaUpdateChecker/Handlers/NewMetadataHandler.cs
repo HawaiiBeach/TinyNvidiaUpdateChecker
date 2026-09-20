@@ -101,11 +101,12 @@ public class NewMetadataHandler
 
                 // Map experimental metadata "Type" to TNUC driver type
                 (string driverTypeKey, string driverTypeLabel) = GetDriverTypeKey(driver.type);
+
+                // Ignore unknown driver types
                 if (driverTypeKey == "unknown") continue;
 
                 // For some reason, expermiental metadata repo is matching desktop GPUs with notebook drivers
                 // Filter out notebook drivers for desktop GPUs
-                // Studio drivers use unified desktop/notebook packages; GPU support was checked above.
                 if (driverTypeKey != "sd")
                 {
                     string[] packageTokens = (driver.key ?? string.Empty).Split('-');

@@ -32,6 +32,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                     try { doc.Load(nviFile); } catch { continue; }
                     if (doc.DocumentElement == null
                         || !string.Equals(doc.DocumentElement.Name, "nvi", StringComparison.OrdinalIgnoreCase)) continue;
+
                     string name = Path.GetFileName(dir);
                     string label = FindNviLabel(doc, name);
 

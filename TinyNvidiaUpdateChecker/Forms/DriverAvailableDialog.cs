@@ -23,7 +23,7 @@ namespace TinyNvidiaUpdateChecker
         {
             ArgumentNullException.ThrowIfNull(nvidiaDrivers);
             if (nvidiaDrivers.Count == 0 || nvidiaDrivers.Any(x => x == null))
-                throw new ArgumentException("At least one valid driver is required.", nameof(nvidiaDrivers));
+                throw new ArgumentException("At least one valid driver is required", nameof(nvidiaDrivers));
 
             InitializeComponent();
             contextMenuStrip1.Renderer = new CleanMenuRenderer();
@@ -51,7 +51,7 @@ namespace TinyNvidiaUpdateChecker
                 driver.uiIdx = index;
             }
 
-            // Set recommended driver as default choice
+            // Set recommended driver as default choice, or fallback to first driver
             selectedDriver = nvidiaDrivers.Find(x => x.recommended) ?? nvidiaDrivers[0];
 
             // This will trigger SelectedIndexChanged event
@@ -63,10 +63,12 @@ namespace TinyNvidiaUpdateChecker
             if (selectedDriver == null) return;
             string pdfUrl = null;
 
+            // selected driver has pdfUrl
             if (!string.IsNullOrWhiteSpace(selectedDriver.pdfUrl))
             {
                 pdfUrl = selectedDriver.pdfUrl;
             }
+            // Fallback to constructing the URL based on driver type and version
             else if (selectedDriver.downloadUrl?.Contains("Quadro_Certified", StringComparison.OrdinalIgnoreCase) == true)
             {
                 pdfUrl = $"https://international.download.nvidia.com/Windows/Quadro_Certified/{selectedDriver.version}/{selectedDriver.version}-win10-win11-nvidia-rtx-quadro-release-notes.pdf";
@@ -175,6 +177,7 @@ namespace TinyNvidiaUpdateChecker
             NvidiaDriver driver = selectedDriver;
             releasedLabel.Text = "Released: unknown";
             sizeLabel.Text = $"Size: {driver.fileSizeEst}";
+
             // If selected driver is missing release date & file size (caused by experimental metadata)
             if (selectedDriver.releaseDate == DateTime.MinValue)
             {
@@ -190,10 +193,13 @@ namespace TinyNvidiaUpdateChecker
                     Debug.WriteLine($"Driver metadata unavailable: {ex.Message}");
                 }
             }
+
+            // Ensure UI is still valid and the selected driver hasn't changed during async operation
             if (IsDisposed || Disposing || selectedDriver != driver) return;
 
-            // Date
-            int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days; // how many days between the two dates
+            // Construct date label
+            // How many days between the two dates
+            int dateDiff = (DateTime.Now - selectedDriver.releaseDate).Days;
             string daysAgoFromRelease;
 
             if (dateDiff == 1)

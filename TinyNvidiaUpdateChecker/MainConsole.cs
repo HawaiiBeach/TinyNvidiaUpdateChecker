@@ -900,17 +900,21 @@ namespace TinyNvidiaUpdateChecker
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.RedirectStandardError = true;
                 process.Start();
+
                 // Drain both pipes while the archiver runs, not after WaitForExit.
                 Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
                 Task<string> errorTask = process.StandardError.ReadToEndAsync();
+
                 if (!process.WaitForExit(TimeSpan.FromMinutes(5)))
                 {
                     process.Kill(true);
                     process.WaitForExit(TimeSpan.FromSeconds(10));
                     throw new TimeoutException("Driver extraction exceeded the five-minute timeout.");
                 }
+
                 if (!Task.WhenAll(outputTask, errorTask).Wait(TimeSpan.FromSeconds(10)))
                     throw new TimeoutException("Archiver output streams did not close after extraction.");
+
                 string output = outputTask.GetAwaiter().GetResult();
                 string error = errorTask.GetAwaiter().GetResult();
                 if (process.ExitCode != 0 || !Directory.Exists(extractedPath)

@@ -36,6 +36,7 @@ namespace TinyNvidiaUpdateChecker.Forms
             {
                 // Quiet mode does not show this UI
                 // Might change the behaviour in the future. Installing a GPU driver without user interaction is weird
+                // TODO this should only be the path for confirm DL, not for quiet mode.
                 try
                 {
                     MainConsole.WriteLine();
@@ -48,10 +49,12 @@ namespace TinyNvidiaUpdateChecker.Forms
                     };
 
                     using Process installer = Process.Start(startInfo)
-                        ?? throw new InvalidOperationException("The installer could not be started.");
+                        ?? throw new InvalidOperationException("The installer could not be started");
+
                     installer.WaitForExit();
                     if (installer.ExitCode != 0)
-                        throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}.");
+                        throw new InvalidOperationException($"The installer exited with code {installer.ExitCode}");
+
                     MainConsole.Write("OK!");
                 }
                 catch (Exception ex)

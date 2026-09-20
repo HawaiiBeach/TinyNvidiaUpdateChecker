@@ -204,7 +204,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 case "Minimal install components":
                 {
                     using ComponentChooserForm componentForm = new();
-                    (List<string> components, bool _) = componentForm.OpenForm((List<Component>)data);
+                    (List<string> components, _) = componentForm.OpenForm((List<Component>)data);
                     string formattedComponents = string.Join(", ", components.ToArray());
                     value = formattedComponents;
                     break;
