@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Notebook driver recommendation for mobile GPUs (experimental metadata) (Author: @TanoINA)
 - Allowed segmented downloader parallel downloads (Author: @TanoINA)
 - Crashes when no drivers were found (Author: @TanoINA)
-- Fixed potential UI thread deadlock during download (Author: @TanoINA)
-- Fixed many edge cases for components handling (Author: @TanoINA)
+- Potential UI thread deadlock during download (Author: @TanoINA)
+- Many edge cases for components handling (Author: @TanoINA)
+- Freeze on broken MSIX app-based library lookup (NanaZip)
 - Cancel execution when closing visual progress bar (edge case) (Author: @TanoINA)
 - Experimental metadata no longer freezes whilst retrieving release date, shows "loading" instead of "unknown" (Author: @TanoINA)
 - Configuration Menu showing "autorun" popup on every open
