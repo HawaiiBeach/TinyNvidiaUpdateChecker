@@ -293,10 +293,9 @@ namespace TinyNvidiaUpdateChecker
                 nvidiaDrivers = null;
                 releaseNotes = null;
                 error = ex.Message;
-                if (debug) WriteLine($"Metadata lookup failed: {error}");
+                WriteLine($"Metadata lookup failed: {error}");
             }
 
-            nvidiaDrivers?.RemoveAll(driver => driver == null);
             if (nvidiaDrivers?.Count > 0)
             {
                 return (nvidiaDrivers, releaseNotes);
@@ -310,7 +309,7 @@ namespace TinyNvidiaUpdateChecker
             }
             else
             {
-                WriteLine("GPU metadata lookup failed both methods. TNUC can not continue.");
+                WriteLine("GPU metadata lookup failed both Old+New metadata handler. TNUC can not continue.");
                 WriteLine($"Error reason: {error}");
                 WriteLine();
                 callExit(1);
@@ -370,11 +369,11 @@ namespace TinyNvidiaUpdateChecker
                 // Perform minimal install
                 string[] minimalInstallTempFiles = MakeInstaller(minimized, FULL_PATH_DIRECTORY, driverFileName);
 
-                // Add minimal temp files
+                // Minimal install was successful, add minimal temp files
                 if (minimalInstallTempFiles != null) {
                     tempFiles.AddRange(minimalInstallTempFiles);
                 } else {
-                    // Fall back to original full installer
+                    // Failed, fall back to original full installer
                     minimalInstaller = false;
                 }
             }
@@ -598,13 +597,13 @@ namespace TinyNvidiaUpdateChecker
                     };
 
                     if (dialog.ShowDialog() == DialogResult.OK) {
-                        savePath = dialog.SelectedPath + @"\";
+                        savePath = Path.TrimEndingDirectorySeparator(dialog.SelectedPath) + Path.DirectorySeparatorChar;
                     } else {
                         PromptAvailableUpdate(nvidiaDrivers, releaseNotes);
                         return;
                     }
 
-                    string finalPath = savePath + driverFileName;
+                    string finalPath = Path.Combine(savePath, driverFileName);
 
                     // Get file size from NVIDIA server
                     if (selectedVersion.fileSize == 0)
@@ -649,8 +648,13 @@ namespace TinyNvidiaUpdateChecker
                 }
 
                 if (ConfigurationHandler.ReadSettingBool("Minimal install")) {
+                    // Perform minimall install
+                    // And if minimal installer failed, fall back to original full installer
                     if (MakeInstaller(false, savePath, driverFileName) == null)
-                        ReadyInstallForm.handleInstall(Path.Combine(savePath, driverFileName), false, [driverFileName], true);
+                    {
+                        string driverPath = Path.Combine(savePath, driverFileName);
+                        ReadyInstallForm.handleInstall(driverPath, false, [driverFileName], true);
+                    }
                 }
             } else if (selectedBtn == DriverAvailableDialog.SelectedBtn.DLINSTALL) {
                 DownloadDriverQuiet(selectedVersion, confirmDL);
@@ -672,7 +676,8 @@ namespace TinyNvidiaUpdateChecker
 
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    DownloadDriverQuiet(selectedVersion, confirmDL, dialog.SelectedPath + @"\", true);
+                    string savePath = Path.TrimEndingDirectorySeparator(dialog.SelectedPath) + Path.DirectorySeparatorChar;
+                    DownloadDriverQuiet(selectedVersion, confirmDL, savePath, true);
                 }
                 else
                 {
@@ -852,19 +857,23 @@ namespace TinyNvidiaUpdateChecker
             savePath = Path.GetFullPath(savePath);
             string extractedPath = Path.Combine(savePath, "temp");
             string fullInstallerPath = Path.Combine(savePath, fileName);
+
             if (!File.Exists(fullInstallerPath) || new FileInfo(fullInstallerPath).Length < 10L * 1024 * 1024)
                 throw new FileNotFoundException($"Driver installer file is missing or incomplete: {fullInstallerPath}");
 
-            // Never merge a new extraction with files from a previous attempt.
+            // Never merge a new extraction with files from a previous attempt
             if (Directory.Exists(extractedPath) && Directory.GetFileSystemEntries(extractedPath).Length != 0)
                 throw new IOException($"Extraction folder is not empty: {extractedPath}. Select an empty folder or remove the old extraction first.");
+
             Directory.CreateDirectory(extractedPath);
 
             try
             {
+                // If no library is valid, throw an exception that will fall back to the original full installer
                 LibraryFile libraryFile = LibraryHandler.EvaluateLibrary()
-                    ?? throw new InvalidOperationException("No supported archiver was found. Install 7-Zip, WinRAR, or NanaZip.");
-                using var process = new Process();
+                    ?? throw new InvalidOperationException("No supported minimal install library was found. Reverting to full installer.");
+
+                using Process process = new();
                 LibraryHandler.Library library = libraryFile.LibraryName();
 
                 // Extract full driver to then analyze
@@ -879,37 +888,27 @@ namespace TinyNvidiaUpdateChecker
                     if (silent) process.StartInfo.Arguments += " -ibck";
                 } else if (library == LibraryHandler.Library.SEVENZIP) {
                     process.StartInfo = new ProcessStartInfo {
+                        FileName = libraryFile.GetInstallationDirectory() + (silent ? "7z.exe" : "7zG.exe"),
                         WorkingDirectory = savePath,
                         Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
-
-                    if (silent) {
-                        process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7z.exe";
-                    } else {
-                        process.StartInfo.FileName = libraryFile.GetInstallationDirectory() + "7zG.exe";
-                    }
                 } else if (library == LibraryHandler.Library.NANAZIP) {
                     process.StartInfo = new ProcessStartInfo {
+                        FileName = silent ? "NanaZipC.exe" : "NanaZipG.exe",
                         WorkingDirectory = savePath,
                         Arguments = $"x \"{fullInstallerPath}\" -o\"{extractedPath}\" -y",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
-
-                    if (silent) {
-                        process.StartInfo.FileName = "NanaZipC.exe";
-                    } else {
-                        process.StartInfo.FileName = "NanaZipG.exe";
-                    }
                 }
 
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.RedirectStandardError = true;
                 process.Start();
 
-                // Drain both pipes while the archiver runs, not after WaitForExit.
+                // Drain both pipes while library runs, not after WaitForExit
                 Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
                 Task<string> errorTask = process.StandardError.ReadToEndAsync();
 
@@ -917,17 +916,18 @@ namespace TinyNvidiaUpdateChecker
                 {
                     process.Kill(true);
                     process.WaitForExit(TimeSpan.FromSeconds(10));
-                    throw new TimeoutException("Driver extraction exceeded the five-minute timeout.");
+                    throw new TimeoutException("Driver extraction exceeded 5 minute timeout.");
                 }
 
                 if (!Task.WhenAll(outputTask, errorTask).Wait(TimeSpan.FromSeconds(10)))
-                    throw new TimeoutException("Archiver output streams did not close after extraction.");
+                    throw new TimeoutException("Library output streams did not close after extraction.");
 
                 string output = outputTask.GetAwaiter().GetResult();
                 string error = errorTask.GetAwaiter().GetResult();
+
                 if (process.ExitCode != 0 || !Directory.Exists(extractedPath)
                     || Directory.GetFileSystemEntries(extractedPath).Length == 0)
-                    throw new IOException($"Archiver: {process.StartInfo.FileName}\nExit code: {process.ExitCode}\nExtraction folder: {extractedPath}\n{error}\n{output}");
+                    throw new IOException($"Library: {process.StartInfo.FileName}\nExit code: {process.ExitCode}\nExtraction folder: {extractedPath}\n{error}\n{output}");
 
                 // Analyze with ComponentHandler
                 List<Component> driverComponents = ComponentHandler.ParseComponentData(extractedPath);
