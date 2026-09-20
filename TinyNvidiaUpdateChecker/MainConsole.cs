@@ -206,22 +206,24 @@ namespace TinyNvidiaUpdateChecker
                 callExit(1);
                 return;
             }
+
             string driverType = ConfigurationHandler.ReadSetting("Driver type");
             bool useExperimental = ConfigurationHandler.ReadSetting("Use Experimental Metadata", null, false) == "true";
 
+            // Get GPU metadata from New/Old metadata handler
+            // If one fails, try the other
             (List<NvidiaDriver> nvidiaDrivers, string releaseNotes) = GetGpuMetadata(gpu, driverType, useExperimental, false);
 
-            nvidiaDrivers?.RemoveAll(driver => driver == null);
-            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0)
+            // No driver was found
+            if (nvidiaDrivers == null || nvidiaDrivers.Count == 0 || nvidiaDrivers.Find(x => x.recommended) == null)
             {
-                WriteLine("No compatible NVIDIA drivers were found.");
+                WriteLine("No compatible NVIDIA driver was found.");
                 callExit(1);
                 return;
             }
 
-            // Get the latest driver (recommended)
-            NvidiaDriver latestDriver = nvidiaDrivers.Find(x => x.recommended) ?? nvidiaDrivers[0];
-            latestDriver.recommended = true;
+            // Default OnlineGPUVersion to recommended driver
+            NvidiaDriver latestDriver = nvidiaDrivers.Find(x => x.recommended);
             latestDriver.title = $"[Latest] {latestDriver.title}";
 
             OfflineGPUVersion = gpu.version;
