@@ -22,7 +22,8 @@ namespace TinyNvidiaUpdateChecker.Forms
         {
             this.componentList = componentList;
             if (!componentList.Any(x => x.name == "Display.Driver"))
-                throw new InvalidOperationException("The installer is missing Display.Driver.");
+                throw new InvalidOperationException("NVIDIA driver is missing Display.Driver");
+
             List<string> defaultComponents = ComponentHandler.ApplyLaptopSafeDefaults(
                 ["Display.Driver"], GPUHandler.IsNotebookComputer(), componentList);
 
@@ -33,26 +34,35 @@ namespace TinyNvidiaUpdateChecker.Forms
             }
             else
             {
-                List<string> initial = componentList.Any(x => x.name == "Display.Driver") ? ["Display.Driver"] : [];
-                configComponents = ComponentHandler.ApplyLaptopSafeDefaults(initial, GPUHandler.IsNotebookComputer(), componentList).ToArray();
+                configComponents = [.. defaultComponents];
             }
 
-            // If quiet mode + config entry exist, return latest used co
-            if (!MainConsole.showUI || MainConsole.confirmDL)
+            // If quiet mode + confirmDL mode is used, show no user interaction
+            // Instead, if config entry exist, return latest used components, otherwise return defaults
+            if (!MainConsole.showUI && MainConsole.confirmDL)
             {
-                chosenComponents = MainConsole.confirmDL ? [.. defaultComponents]
-                    : configComponents.Where(name => componentList.Any(x => x.name == name)).ToList();
+                // Merge defaultComponents with configComponents
+                chosenComponents = [.. defaultComponents.Union(configComponents.Where(name => componentList.Any(x => x.name == name)))];
+
+                // Add Display.Driver to chosenComponents (if somehow missing??)
                 if (!chosenComponents.Contains("Display.Driver")) chosenComponents.Add("Display.Driver");
+
+                // Validate component dependency
                 for (int i = 0; i < chosenComponents.Count; i++)
                 {
                     Component component = componentList.First(x => x.name == chosenComponents[i]);
+
                     foreach (string dependency in component.dependencies.Keys)
                     {
+                        // Check if component dependency exists in the NVIDIA driver
                         if (!componentList.Any(x => x.name == dependency))
-                            throw new InvalidOperationException($"Missing required component: {dependency}");
+                            throw new InvalidOperationException($"Component dependency is missing in NVIDIA driver: {dependency}");
+
+                        // Add missing dependency to chosenComponents
                         if (!chosenComponents.Contains(dependency)) chosenComponents.Add(dependency);
                     }
                 }
+
                 return (chosenComponents, false);
             }
 
@@ -62,7 +72,8 @@ namespace TinyNvidiaUpdateChecker.Forms
             ShowDialog();
 
             if (!chosenComponents.Contains("Display.Driver"))
-                throw new OperationCanceledException("Component selection was cancelled or is incomplete.");
+                throw new OperationCanceledException("Component selection is missing Display.Driver");
+
             return (chosenComponents, true);
         }
 
