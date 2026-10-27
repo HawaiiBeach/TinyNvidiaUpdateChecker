@@ -17,14 +17,14 @@ Made by Windows power users, for Windows power users.
 ## Dependencies
 
 - Windows 10 or higher
-- [.NET Desktop Runtime 8 x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (it will be prompted to install if missing, or install with `winget install Microsoft.DotNet.DesktopRuntime.8`)
+- [.NET Desktop Runtime 10 x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) (it will be prompted to install if missing, or install with `winget install Microsoft.DotNet.DesktopRuntime.10`)
 - Internet connection
 - (optional) WinRAR, 7-Zip or NanaZip for minimal install feature (driver debloat)
 
 ### Install with [Scoop](https://scoop.sh/#/apps?s=2&d=1&o=true&p=1&q=tinynvidiaupdatechecker)
 
 ```
-winget install Microsoft.DotNet.DesktopRuntime.8
+winget install Microsoft.DotNet.DesktopRuntime.10
 scoop bucket add extras
 scoop install tinynvidiaupdatechecker
 ```
@@ -33,7 +33,7 @@ scoop install tinynvidiaupdatechecker
 
 ```
 winget source update
-winget install Microsoft.DotNet.DesktopRuntime.8
+winget install Microsoft.DotNet.DesktopRuntime.10
 winget install Hawaii_Beach.TinyNvidiaUpdateChecker
 ```
 
