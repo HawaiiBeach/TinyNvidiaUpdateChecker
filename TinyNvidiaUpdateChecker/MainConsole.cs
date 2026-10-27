@@ -418,9 +418,9 @@ namespace TinyNvidiaUpdateChecker
                     overrideConfigFileLocation = locationArg;
                 }
 
-                // delete old file
+                // handle client update cleanup
                 else if (arg.ToLower() == "--cleanup-update") {
-                    File.Delete(Path.GetFullPath(Environment.ProcessPath) + ".old");
+                    UpdateHandler.HandleCleanupUpdate();
                 }
 
                 // help menu

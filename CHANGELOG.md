@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - `DOTNET_ROOT` environment variable without .NET runtime would cause a "No runtime found"-error (Author: @Gesugao-san)
+- Client updates now updates WinGet package entry
+
 ## [1.29.0] - 2026-09-20
 ### Added
 - Individual driver release notes (does not apply to experimental metadata)

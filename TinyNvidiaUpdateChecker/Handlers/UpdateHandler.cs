@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -19,9 +20,9 @@ namespace TinyNvidiaUpdateChecker.Handlers
                 GitHubAPIReleaseRoot release = JsonConvert.DeserializeObject<GitHubAPIReleaseRoot>(response);
                 MainConsole.onlineVer = release.tag_name[1..];
 
-                Asset exeFile = release.assets.Where(x => x.name == "TinyNvidiaUpdateChecker.exe").First();
+                Asset exeFile = release.assets.First(x => x.name == "TinyNvidiaUpdateChecker.exe");
                 string downloadUrl = exeFile.browser_download_url;
-                string serverHash = exeFile.digest[7..];
+                string serverHash = exeFile.digest[7..]; // Strip "sha256:" from GitHub hash
                 string changelog = release.body;
 
                 ConsoleHelper.Write("OK!");
@@ -121,20 +122,48 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
         public static string CalculateSHA256(string filePath)
         {
-            using SHA256 sha256 = SHA256.Create();
             try
             {
                 using FileStream stream = File.OpenRead(filePath);
-                string hash = BitConverter.ToString(sha256.ComputeHash(stream))
-                    .Replace("-", "")
-                    .ToLowerInvariant();
-                return hash;
+                return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
             }
             catch
             {
                 ConsoleHelper.WriteLine("ERROR");
                 ConsoleHelper.WriteLine();
                 return null;
+            }
+        }
+
+        public static void HandleCleanupUpdate()
+        {
+            // Delete old backup file
+            File.Delete(Path.GetFullPath(Environment.ProcessPath) + ".old");
+
+            // Update WinGet registry entry if it exists
+            UpdateWinGetVersion();
+        }
+
+        /// <summary>
+        /// Update the WinGet registry entry if it exists
+        /// </summary>
+        static void UpdateWinGetVersion()
+        {
+            try
+            {
+                string winGetKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Hawaii_Beach.TinyNvidiaUpdateChecker_Microsoft.Winget.Source_8wekyb3d8bbwe";
+                using RegistryKey key = Registry.CurrentUser.OpenSubKey(winGetKey, true);
+                if (key == null) return; // not installed via WinGet
+
+                string exePath = Path.GetFullPath(Environment.ProcessPath);
+                string exeHash = CalculateSHA256(exePath);
+
+                key.SetValue("DisplayVersion", MainConsole.offlineVer, RegistryValueKind.String);
+                key.SetValue("SHA256", exeHash, RegistryValueKind.String);
+            }
+            catch
+            {
+
             }
         }
     }
