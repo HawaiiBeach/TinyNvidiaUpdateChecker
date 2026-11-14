@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - `DOTNET_ROOT` environment variable without .NET runtime would cause a "No runtime found"-error (Author: @Gesugao-san)
+- "Select a GPU interactively before running unattended"-error appearing for normal runs
 - Client updates now updates WinGet package entry
 
 ## [1.29.0] - 2026-09-20

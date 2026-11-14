@@ -189,7 +189,7 @@ namespace TinyNvidiaUpdateChecker.Handlers
 
                 case "GPU ID":
                 {
-                    if (!MainConsole.confirmDL)
+                    if (MainConsole.confirmDL)
                         throw new InvalidOperationException("Select a GPU interactively before running unattended.");
 
                     using GPUSelectorForm gpuForm = new();
